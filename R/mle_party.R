@@ -9,7 +9,7 @@ mle_party <- function(y, X, G_within, G_between, starting.values, boundL,
   theta_L <- boundL
   theta_U <- boundU
 
-  parnames(ll_party) <- names(theta)
+  bbmle::parnames(ll_party) <- names(theta)
 
   fit <- mle2(ll_party, method="L-BFGS-B", start = theta,
               parnames = names(theta), vecpar = TRUE, lower = theta_L,

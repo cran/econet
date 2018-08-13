@@ -87,9 +87,8 @@
 #'                        G = G_model_A, model = "model_A", estimation = "NLLS",
 #'                        hypothesis = "lim", start.val = starting)
 #'
-#' # Store and print results
-#' lim_estimate_model_A <- lim_model_A[[1]]; summary(lim_estimate_model_A)
-#' lim_centrality_model_A <- lim_model_A[[2]]; lim_centrality_model_A
+#' summary(lim_model_A)
+#' lim_model_A$centrality
 #'
 #' # Test Heterogeneity
 #'
@@ -113,9 +112,8 @@
 #'                        G = G_model_A, model = "model_A", estimation = "NLLS",
 #'                        hypothesis = "het", z = z, start.val = starting)
 #'
-#' # Store and print results
-#' lim_het_model_A <- het_model_A[[1]]; summary(lim_het_model_A)
-#' lim_het_centrality_model_A <- het_model_A[[2]]; lim_het_centrality_model_A
+#' summary(het_model_A)
+#' het_model_A$centrality
 #'
 #' # Model B
 #'
@@ -147,10 +145,9 @@
 #'                        exclusion_restriction = G_exclusion_restriction,
 #'                        start.val = starting)
 #'
-#' # Store and print results
-#' lim_estimate_model_B <- lim_model_B[[1]]; summary(lim_estimate_model_B)
-#' lim_centrality_model_B <- lim_model_B[[2]]; lim_centrality_model_B
-#' lim_estimate_first_step_model_B <- lim_model_B[[3]]; summary(lim_estimate_first_step_model_B)
+#' summary(lim_model_B)
+#' lim_model_B$centrality
+#' summary(lim_model_B, print = "first.step")
 #'
 #' # Test Heterogeneity
 #'
@@ -175,8 +172,8 @@
 #'                          hypothesis = "het_l", z = z, start.val = starting)
 #'
 #' # Store and print results
-#' het_l_estimate_model_B <- het_model_B_l[[1]]; summary(het_l_estimate_model_B)
-#' het_l_centrality_model_B <- het_model_B_l[[2]]; het_l_centrality_model_B
+#' summary(het_model_B_l)
+#' het_model_B_l$centrality
 #'
 #' # Specify starting values
 #' starting <- c(alpha = 0.04717,
@@ -193,8 +190,8 @@
 #'                          hypothesis = "het_r", z = z, start.val = starting)
 #'
 #' # Store and print results
-#' het_r_estimate_model_B <- het_model_B_r[[1]]; summary(het_r_estimate_model_B)
-#' het_r_centrality_model_B <- het_model_B_r[[2]]; het_r_centrality_model_B
+#' summary(het_model_B_r)
+#' het_model_B_r$centrality
 #'
 #' # Heterogeneous factor (edge -level)
 #' z <- as.numeric(as.character(db_model_B$party))
@@ -214,8 +211,8 @@
 #'                          z = z, start.val = starting)
 #'
 #' # Store and print results
-#' party_estimate_model_B <- party_model_B[[1]]; summary(party_estimate_model_B)
-#' party_centrality_model_B <- party_model_B[[2]]; party_centrality_model_B
+#' summary(party_estimate_model_B)
+#' party_estimate_model_B$centrality
 #' }
 #' # WARNING, This toy example is provided only for runtime execution.
 #' # Please refer to previous examples for sensible calculations.
@@ -229,7 +226,7 @@
 #'                        hypothesis = "lim", start.val = c(alpha = 0.09030594,
 #'                                                          beta_dw = 1.21401940,
 #'                                                          phi = 1.47140647))
-#' summary(lim_model_A_test[[1]])
+#' summary(lim_model_A_test)
 #' @import minpack.lm
 #' @importFrom  bbmle parnames mle2
 #' @importFrom dplyr %>% group_by summarize
@@ -366,17 +363,18 @@ net_dep <- function(formula = formula(),
     }
   }
 
+  set_second_step <- nls_prepare_data(dependent_variable = y_name, X = X,
+                                      G = G, z = z, e = e,
+                                      start.val = start.val,
+                                      starting.values = starting.values,
+                                      model = model, hypothesis = hypothesis,
+                                      endogeneity = endogeneity,
+                                      correction = correction, tt = tt)
+  nls_formula_fit <- set_second_step[[1]]
+  starting.values <- set_second_step[[2]]
+
   if (estimation == "NLLS") {
 
-    set_second_step <- nls_prepare_data(dependent_variable = y_name, X = X,
-                                        G = G, z = z, e = e,
-                                        start.val = start.val,
-                                        starting.values = starting.values,
-                                        model = model, hypothesis = hypothesis,
-                                        endogeneity = endogeneity,
-                                        correction = correction, tt = tt)
-    nls_formula_fit <- set_second_step[[1]]
-    starting.values <- set_second_step[[2]]
     e <- set_second_step[[3]]
     set.control <- nls.lm.control(ftol = sqrt(.Machine$double.eps) / 1000,
                                   ptol = sqrt(.Machine$double.eps) / 1000,
@@ -446,11 +444,14 @@ net_dep <- function(formula = formula(),
                                  boundL = boundL, boundU = boundU)
       }
     }
+
+    second_step@formula <- paste(nls_formula_fit[2], nls_formula_fit[3], sep=' ~ ')
+
   }
 
-  centrality <- parameter_dependent_centrality(second_step = second_step,
-                                               hypothesis = hypothesis, I = I,
-                                               G = G, e = e)
+   centrality <- parameter_dependent_centrality(second_step = second_step,
+                                                hypothesis = hypothesis, I = I,
+                                                G = G, e = e)
 
   if (endogeneity == TRUE) {
     res <- list(second_step = second_step, centrality = centrality,
@@ -462,6 +463,9 @@ net_dep <- function(formula = formula(),
                 starting.values = starting.values)
   }
 
+  class(res) <- "econet"
+  attributes(res)$hypothesis <- hypothesis
+  attributes(res)$model <- model
   return(res)
 
 }

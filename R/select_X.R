@@ -7,10 +7,10 @@
 select_X <- function(specification){
   X <- as.character(specification[[3]])
   X <- as.character(X[[3]])
+  X <- gsub("\n", "", X)
+  X <- gsub(" ", "", X)
   X <- strsplit(X, "\\+")
   X <- as.character(sapply(X[[1]], function(x) strsplit(x, "\\*")[[1]])[2, ])
-  X <- sub(" ", "", X)
-  X <- sub(" ", "", X)
   X <- sub("\\)", "", X)
   return(X)
 }

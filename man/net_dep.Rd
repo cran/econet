@@ -7,10 +7,10 @@
 net_dep(formula = formula(), data = list(), G = list(),
   model = c("model_A", "model_B"), estimation = c("NLLS", "MLE"),
   hypothesis = c("lim", "het", "het_l", "het_r", "par"),
-  endogeneity = FALSE, correction = NULL, first_step = NULL, z = NULL,
-  data_first_step = NULL, exclusion_restriction = NULL, start.val = NULL,
-  to_weight = NULL, time_fixed_effect = NULL, mle_controls = NULL,
-  kappa = NULL)
+  endogeneity = FALSE, correction = NULL, first_step = NULL,
+  z = NULL, data_first_step = NULL, exclusion_restriction = NULL,
+  start.val = NULL, to_weight = NULL, time_fixed_effect = NULL,
+  mle_controls = NULL, kappa = NULL)
 }
 \arguments{
 \item{formula}{an object of class \code{formula}: a symbolic description of the model to be fitted. The constant (i.e. intercept) and the autogressive parameter needs not to be specified.}
@@ -117,9 +117,8 @@ lim_model_A <- net_dep(formula = f_model_A, data = db_model_A,
                        G = G_model_A, model = "model_A", estimation = "NLLS",
                        hypothesis = "lim", start.val = starting)
 
-# Store and print results
-lim_estimate_model_A <- lim_model_A[[1]]; summary(lim_estimate_model_A)
-lim_centrality_model_A <- lim_model_A[[2]]; lim_centrality_model_A
+summary(lim_model_A)
+lim_model_A$centrality
 
 # Test Heterogeneity
 
@@ -143,9 +142,8 @@ het_model_A <- net_dep(formula = f_het_model_A, data = db_model_A,
                        G = G_model_A, model = "model_A", estimation = "NLLS",
                        hypothesis = "het", z = z, start.val = starting)
 
-# Store and print results
-lim_het_model_A <- het_model_A[[1]]; summary(lim_het_model_A)
-lim_het_centrality_model_A <- het_model_A[[2]]; lim_het_centrality_model_A
+summary(het_model_A)
+het_model_A$centrality
 
 # Model B
 
@@ -177,10 +175,9 @@ lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                        exclusion_restriction = G_exclusion_restriction,
                        start.val = starting)
 
-# Store and print results
-lim_estimate_model_B <- lim_model_B[[1]]; summary(lim_estimate_model_B)
-lim_centrality_model_B <- lim_model_B[[2]]; lim_centrality_model_B
-lim_estimate_first_step_model_B <- lim_model_B[[3]]; summary(lim_estimate_first_step_model_B)
+summary(lim_model_B)
+lim_model_B$centrality
+summary(lim_model_B, print = "first.step")
 
 # Test Heterogeneity
 
@@ -205,8 +202,8 @@ het_model_B_l <- net_dep(formula = f_het_model_B,
                          hypothesis = "het_l", z = z, start.val = starting)
 
 # Store and print results
-het_l_estimate_model_B <- het_model_B_l[[1]]; summary(het_l_estimate_model_B)
-het_l_centrality_model_B <- het_model_B_l[[2]]; het_l_centrality_model_B
+summary(het_model_B_l)
+het_model_B_l$centrality
 
 # Specify starting values
 starting <- c(alpha = 0.04717,
@@ -223,8 +220,8 @@ het_model_B_r <- net_dep(formula = f_het_model_B,
                          hypothesis = "het_r", z = z, start.val = starting)
 
 # Store and print results
-het_r_estimate_model_B <- het_model_B_r[[1]]; summary(het_r_estimate_model_B)
-het_r_centrality_model_B <- het_model_B_r[[2]]; het_r_centrality_model_B
+summary(het_model_B_r)
+het_model_B_r$centrality
 
 # Heterogeneous factor (edge -level)
 z <- as.numeric(as.character(db_model_B$party))
@@ -244,8 +241,8 @@ party_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                          z = z, start.val = starting)
 
 # Store and print results
-party_estimate_model_B <- party_model_B[[1]]; summary(party_estimate_model_B)
-party_centrality_model_B <- party_model_B[[2]]; party_centrality_model_B
+summary(party_estimate_model_B)
+party_estimate_model_B$centrality
 }
 # WARNING, This toy example is provided only for runtime execution.
 # Please refer to previous examples for sensible calculations.
@@ -259,7 +256,7 @@ lim_model_A_test <- net_dep(formula = f_model_A, data = db_model_A,
                        hypothesis = "lim", start.val = c(alpha = 0.09030594,
                                                          beta_dw = 1.21401940,
                                                          phi = 1.47140647))
-summary(lim_model_A_test[[1]])
+summary(lim_model_A_test)
 }
 \references{
 Battaglini M., E. Patacchini (2018), "Influencing Connected Legislators",  Journal of Political Economy, forthcoming. \cr

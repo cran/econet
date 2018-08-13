@@ -7,7 +7,7 @@ mle_compet_lim <- function(y, X, G, z, starting.values, boundL, boundU) {
   theta <- starting.values
   theta_L <- boundL
   theta_U <- boundU
-  parnames(ll_compet_lim) <- names(theta)
+  bbmle::parnames(ll_compet_lim) <- names(theta)
   X = X[, -1]
   fit <- mle2(ll_compet_lim, method = "L-BFGS-B", start = theta,
               parnames = names(theta), vecpar = TRUE, lower = theta_L,

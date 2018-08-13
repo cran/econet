@@ -8,7 +8,7 @@ mle_compet_het <- function(y, X, G, z, starting.values, boundL, boundU) {
   theta_L <- boundL
   theta_U <- boundU
 
-  parnames(ll_compet_het_left) <- names(theta)
+  bbmle::parnames(ll_compet_het_left) <- names(theta)
   X = X[,-1]
 
   fit <- mle2(ll_compet_het_left,  method="L-BFGS-B", start = theta,

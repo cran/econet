@@ -22,7 +22,7 @@ time_party_connection <- function(x, G, tt) {
     tmp <- tmp - 1
     matrix(tmp * 1, length(y), length(y))
   } )
-  between <- as.matrix(Reduce("bdiag", abs(cong_mat)))
+  between <- as.matrix(Reduce("bdiag", lapply(cong_mat, abs)))
 
   G_between <- G * between
   G_within <- G * within

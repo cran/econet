@@ -1,4 +1,4 @@
-#' Column-normalized adjacency matrix representing a subsample of the alumni network of the 111th U.S. Congress.
+#' Column-normalized adjacency matrix representing a subsample of the alumni network of the 109th U.S. Congress.
 #'
 #' @docType data
 #' @usage data("a_G_alumni_109")

@@ -2,22 +2,24 @@
 % Please edit documentation in R/quantify.R
 \name{quantify}
 \alias{quantify}
-\title{Quantification of marginal effects in linear-in-means models.}
+\alias{quantify.econet}
+\title{quantify: quantification of marginal effects in linear-in-means models.}
 \usage{
-quantify(fit, Gn)
+\method{quantify}{econet}(object, ...)
 }
 \arguments{
-\item{fit}{first object in the list of outcomes returned by \code{net_dep} (available only if the argument \code{model} is set to \code{"model_B"}).}
+\item{object}{first object in the list of outcomes returned by \code{net_dep} (available only if the argument \code{model} is set to \code{"model_B"}).}
 
-\item{Gn}{an object of class \code{Matrix} representing the social network.}
+\item{...}{other arguments}
 }
 \value{
 an object of class \code{data.frame} listing direct and indirect variable effects (mean, standard deviation, max, min).
 }
 \description{
-Quantification of marginal effects in linear-in-means models.
+quantify: quantification of marginal effects in linear-in-means models.
 }
 \details{
+\code{quantify} returns marginal effects for \code{net_dep} objects when \code{model = "model_B"} and \code{hypothesis = "lim"}.
 For additional details, see the vignette
 }
 \examples{
@@ -49,24 +51,21 @@ lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                        first_step = "standard",
                        exclusion_restriction = G_exclusion_restriction,
                        start.val = starting)
-# Store and print results
-lim_estimate_model_B <- lim_model_B[[1]]; summary(lim_estimate_model_B)
-# Quantification
-quantify(fit = lim_estimate_model_B, Gn = G_model_B)
+quantify(fit = lim_model_B )
 }
 # WARNING, This toy example is provided only for runtime execution.
 # Please refer to previous examples for sensible calculations.
 data("db_alumni_test")
 data("G_model_A_test")
-db_model_A <- db_alumni_test
-G_model_A <- G_model_A_test
-f_model_A <- formula("les ~ dw")
-lim_model_A_test <- net_dep(formula = f_model_A, data = db_model_A,
-                       G = G_model_A, model = "model_A", estimation = "NLLS",
-                       hypothesis = "lim", start.val = c(alpha = 0.09030594,
-                                                         beta_dw = 1.21401940,
-                                                         phi = 1.47140647))
-quantify(lim_model_A_test[[1]], G_model_A)
+db_model <- db_alumni_test
+G_model <- G_model_A_test
+f_model <- formula("les ~ dw")
+lim_model_test <- net_dep(formula = f_model, data = db_model,
+                       G = G_model, model = "model_B", estimation = "NLLS",
+                       hypothesis = "lim", start.val = c(alpha = 0.4553039,
+                                                         beta_dw = -0.7514903,
+                                                         phi = 1.6170539))
+quantify(lim_model_test)
 }
 \seealso{
 \code{\link{net_dep}}

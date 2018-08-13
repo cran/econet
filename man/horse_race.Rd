@@ -2,16 +2,17 @@
 % Please edit documentation in R/horse_race.R
 \name{horse_race}
 \alias{horse_race}
-\title{Compare the explanatory power of parameter-dependent network centrality measures with those of standard measures of network centrality.}
+\title{Compare the explanatory power of parameter.dependent network centrality measures with those of standard measures of network centrality.}
 \usage{
-horse_race(formula = formula(), centralities = c("indegree", "outdegree",
-  "degree", "betweenness", "incloseness", "outcloseness", "closeness",
-  "eigenvector"), directed = FALSE, weighted = FALSE,
+horse_race(formula = formula(), centralities = c("indegree",
+  "outdegree", "degree", "betweenness", "incloseness", "outcloseness",
+  "closeness", "eigenvector"), directed = FALSE, weighted = FALSE,
   normalization = FALSE, data = list(), unobservables = list(),
   G = list(), model = c("model_A", "model_B"), estimation = c("NLLS",
-  "MLE"), endogeneity = FALSE, first_step = NULL, data_first_step = NULL,
-  exclusion_restriction = NULL, start.val = NULL, to_weight = NULL,
-  time_fixed_effect = NULL, mle_controls = NULL)
+  "MLE"), endogeneity = FALSE, first_step = NULL,
+  data_first_step = NULL, exclusion_restriction = NULL,
+  start.val = NULL, to_weight = NULL, time_fixed_effect = NULL,
+  mle_controls = NULL)
 }
 \arguments{
 \item{formula}{an object of class \code{formula}: a symbolic description of the model to be fitted. The constant (i.e. intercept) and the autogressive parameter needs not to be specified.}
@@ -26,7 +27,7 @@ horse_race(formula = formula(), centralities = c("indegree", "outdegree",
 
 \item{data}{an object of class \code{data.frame} containing the variables in the model. If data are longitudinal, observations must be ordered by time period and then by individual.}
 
-\item{unobservables}{a numeric vector used to obtain an unbiased estimate of the parameter-dependent centrality when the network is endogenous. See details.}
+\item{unobservables}{a numeric vector used to obtain an unbiased estimate of the parameter.dependent centrality when the network is endogenous. See details.}
 
 \item{G}{an object of class \code{Matrix} representing the social network. Row and column names must be specified and match the order of the observations in \code{data}.}
 
@@ -59,7 +60,7 @@ A list of two objects:
 }
 }
 \description{
-Compare the explanatory power of parameter-dependent network centrality measures with those of standard measures of network centrality.
+Compare the explanatory power of parameter.dependent network centrality measures with those of standard measures of network centrality.
 }
 \details{
 A number of different normalization are available to the user:
@@ -67,7 +68,7 @@ A number of different normalization are available to the user:
 \item \code{bygraph} and \code{bycomponent} are used to divide \emph{degree} and \emph{closeness} centrality by \eqn{n - 1}, and \emph{betweenness} centrality by \eqn{(n - 1) * (n - 2)} if \code{directed = TRUE}, or by \eqn{(n - 1)*(n - 2)/2} if \code{directed = FALSE}. In the former case (i.e. \code{bygraph}), \emph{n} is equal to the number of nodes in the network In the latter case (i.e. \code{bycomponent}), \emph{n} is equal to the number of nodes of the component in which the node is embedded.
 \item \code{bymaxgraph} and \code{bymaxcomponent} are used to divide \emph{degree}, \emph{betweenness} and \emph{closeness} centrality by the maximum value of the centrality of the network (\code{bymaxgraph}) or component (\code{bymaxcomponent}) in which the node is embedded.
 }
-If the network is endogenous, the user is required to run separately \code{net_dep} and extract from the resulting object the vector of unobservables necessary for obtaining an unbiased estimate of the parameter-dependent centrality. This vector can be passed through the argument \code{unobservables}.\cr
+If the network is endogenous, the user is required to run separately \code{net_dep} and extract from the resulting object the vector of unobservables necessary for obtaining an unbiased estimate of the parameter.dependent centrality. This vector can be passed through the argument \code{unobservables}.\cr
 If \code{endogeneity = TRUE}, a two-step estimation is implemented to control for network endogeneity. The argument \code{first_step} is used to control for the specification of the first-step model, e.g.:
 \itemize{
 \item \code{first_step = "standard"} is used when agents' connection are predicted by the differences in their characteristics (i.e. those on the right hand side of \code{formula}), and an \code{exclusion_restriction}: i.e., their connections in a different network.
@@ -109,29 +110,29 @@ horse_model_B <- horse_race(formula = f_model_B,
               start.val = starting)
 
 # Store and print results
-betweenness_estimate_model_B <- horse_model_B[[1]][[1]]; summary(betweenness_estimate_model_B)
-horse_estimate_model_B <- horse_model_B[[1]][[2]]; summary(horse_model_B[[1]][[2]])
-horse_centrality_model_B <- horse_model_B[[2]]; horse_centrality_model_B
+summary(horse_model_B)
+summary(horse_model_B, centrality = "betweenness")
+horse_model_B$centrality
 }
 # WARNING, This toy example is provided only for runtime execution.
 # Please refer to previous examples for sensible calculations.
 data("db_alumni_test")
 data("G_model_A_test")
-db_model_A <- db_alumni_test
-G_model_A <- G_model_A_test
-f_model_A <- formula("les ~ dw")
-horse_model_A_test <- horse_race(formula = f_model_A, centralities = "betweenness",
+db_model <- db_alumni_test
+G_model <- G_model_A_test
+f_model <- formula("les ~ dw")
+horse_model_test <- horse_race(formula = f_model, centralities = "betweenness",
                             directed = TRUE, weighted = FALSE, normalization = NULL,
-                            data = db_model_A, unobservables = NULL, G = G_model_A,
+                            data = db_model, unobservables = NULL, G = G_model,
                             model = "model_A", estimation = "NLLS",
                             start.val = c(alpha = -0.31055275,
                                           beta_dw = 1.50666982,
                                           beta_betweenness = 0.09666742,
                                           phi = 16.13035695))
-summary(horse_model_A_test[[1]][[2]])
+summary(horse_model_test)
 }
 \references{
-Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2018), "Econet: An R package for the Estimation of parameter-dependent centrality measures", NBER Working Paper (24442). \cr
+Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2018), "Econet: An R package for the Estimation of parameter.dependent centrality measures", NBER Working Paper (24442). \cr
 }
 \seealso{
 \code{\link{net_dep}}

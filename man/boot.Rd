@@ -2,13 +2,14 @@
 % Please edit documentation in R/boot.R
 \name{boot}
 \alias{boot}
-\title{Bootstrap residuals with cross-sectional dependence}
+\alias{boot.econet}
+\title{boot: Bootstrap residuals with cross-sectional dependence}
 \usage{
-boot(fit, hypothesis = c("lim", "het", "het_l", "het_r", "par"),
-  group = NULL, niter, weights)
+\method{boot}{econet}(object, hypothesis = c("lim", "het", "het_l",
+  "het_r", "par"), group = NULL, niter, weights, ...)
 }
 \arguments{
-\item{fit}{First object in the list of outcomes returned by \code{net_dep}.}
+\item{object}{an object of class \code{econet} obtained using 'NLLS' estimation.}
 
 \item{hypothesis}{string. One of \code{c("lim","het", "het_l", "het_r", "par")}.}
 
@@ -16,16 +17,19 @@ boot(fit, hypothesis = c("lim", "het", "het_l", "het_r", "par"),
 
 \item{niter}{number of required iterations.}
 
-\item{weights}{logical. It is \code{TRUE} if the object \code{fit} was estimated using \code{weights}, and \code{FALSE} otherwise.}
+\item{weights}{logical. It is \code{TRUE} if the object \code{object} was estimated using \code{weights}, and \code{FALSE} otherwise.}
+
+\item{...}{additional parameters}
 }
 \value{
 a numeric vector containing bootstrapped standard errors  (see Anselin, 1990). If the procedure is not feasible, it returns a vector of NAs.
 }
 \description{
-Bootstrap residuals with cross-sectional dependence
+boot: Bootstrap residuals with cross-sectional dependence
 }
 \details{
 For additional details, see the vignette
+Warning: This function is available only when \code{net_dep} is run with \code{estimation == "NLLS"}
 }
 \examples{
 \donttest{
@@ -49,19 +53,17 @@ starting <- c(alpha = 0.23952,
               phi = 0.40038,
               unobservables = 0.07714)
 
-# Fit Linear-in-means model
+# object Linear-in-means model
 lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                        G = G_model_B, model = "model_B", estimation = "NLLS",
                        hypothesis = "lim", endogeneity = TRUE, correction = "heckman",
                        first_step = "standard",
                        exclusion_restriction = G_exclusion_restriction,
                        start.val = starting)
-# Store and print results
-lim_estimate_model_B <- lim_model_B[[1]]; summary(lim_estimate_model_B)
 # Bootstrap
 # Warning: this may take a very long time to run.
 # Decrease the number of iterations to reduce runtime.
-boot_lim_estimate <- boot(fit = lim_estimate_model_B, hypothesis = "lim",
+boot_lim_estimate <- boot(object = lim_model_B, hypothesis = "lim",
                           group = NULL, niter = 1000, weights = FALSE)
 boot_lim_estimate
 }
