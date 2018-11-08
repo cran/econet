@@ -36,7 +36,7 @@ Warning: This function is available only when \code{net_dep} is run with \code{e
 # Load data
 data("db_cosponsor")
 data("G_alumni_111")
-db_model_B <- subset(db_cosponsor, time == 3)
+db_model_B <- db_cosponsor
 G_model_B <- G_cosponsor_111
 G_exclusion_restriction <- G_alumni_111
 are_factors <- c("party", "gender", "nchair")
