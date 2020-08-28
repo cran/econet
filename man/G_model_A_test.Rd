@@ -4,7 +4,9 @@
 \name{G_model_A_test}
 \alias{G_model_A_test}
 \title{Column-normalized adjacency matrix representing a subsample of the alumni network of the 111th U.S. Congress.}
-\format{Data set for runtime executions. An object of class \code{Matrix} with 42 rows and 42 columns}
+\format{
+Data set for runtime executions. An object of class \code{Matrix} with 42 rows and 42 columns
+}
 \usage{
 data("G_model_A_test")
 }

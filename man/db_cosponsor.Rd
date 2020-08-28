@@ -4,7 +4,8 @@
 \name{db_cosponsor}
 \alias{db_cosponsor}
 \title{Dataset from Battaglini, Leone Sciabolazza, Patacchini (2018)}
-\format{an object of class \code{data.frame} with 2176 rows and 48 columns
+\format{
+an object of class \code{data.frame} with 2176 rows and 48 columns
 \describe{
 \item{id}{unique congressman id.}
 \item{time}{categorical variable. It takes 1 if the record refers to the 109th congress, 2 if the record refers to the 110th congress, 3 if the record refers to the 111th congress, 4 if the record refers to the 112th congress, 5 if the record refers to the 113th congress.}
@@ -24,7 +25,8 @@
 \item{nowhite}{dummy variable taking value of 1 if the member of Congress is Afro-American or Latino, and 0 otherwise.}
 \item{H.102-251}{list of committee dummies. Each one refers to a different committee. The dummy takes value of 1 if the congressman served in the given commitee.}
 \item{weights}{for each congressman \emph{i}, the value is equal to the inverse of the variance of LES of all congressmen in \emph{i}'s State of election.}
-}}
+}
+}
 \usage{
 data("db_cosponsor")
 }

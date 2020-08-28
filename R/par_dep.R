@@ -12,6 +12,9 @@ par_dep <- function(fit, type){
          het = coef(fit)[names(coef(fit)) %in% c("phi", "gamma")],
          het_l = coef(fit)[names(coef(fit)) %in% c("theta_0", "theta_1")],
          het_r = coef(fit)[names(coef(fit)) %in% c("eta_0", "eta_1")],
-         par = coef(fit)[names(coef(fit)) %in% c("phi_within", "phi_between")]
+         par = coef(fit)[names(coef(fit)) %in% c("phi_within", "phi_between")],
+         par_split_btw = coef(fit)[names(coef(fit)) %in% c("phi_within", "phi_between_01", "phi_between_10")],
+         par_split_with = coef(fit)[names(coef(fit)) %in% c("phi_within_0", "phi_within_1", "phi_between")],
+         par_split_with_btw = coef(fit)[names(coef(fit)) %in% c("phi_within_0", "phi_within_1", "phi_between_01", "phi_between_10")]
   )
 }

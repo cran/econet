@@ -28,6 +28,7 @@ prepare_data <- function(formula, data, time_fixed_effect){
 
   if (!is.null(time_fixed_effect)) {
     tt <- data[, time_fixed_effect]
+    tt <- as.factor(as.numeric(tt))
     tt <- as.numeric(as.character(tt))
   } else {
     tt <- NULL

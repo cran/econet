@@ -1,5 +1,7 @@
 #' @importFrom  utils globalVariables
-utils::globalVariables(c("E<-","G", "G_between", "G_within", "X", "Y",
+utils::globalVariables(c("E<-","G", "G_between", "G_within",
+                         "G_between_01", "G_between_10",
+                         "G_within_0", "G_within_1", "X", "Y",
                          "calc_mle2_function", "cidx", "correction",
                          "data_first_step", "endogeneity",  "estimation",
                          "exclusion_restriction", "first_step",

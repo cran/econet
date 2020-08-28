@@ -4,13 +4,26 @@
 \alias{net_dep}
 \title{Implement a number of modifications to the linear-in-means model to obtain different weighted versions of Katz-Bonacich centrality.}
 \usage{
-net_dep(formula = formula(), data = list(), G = list(),
-  model = c("model_A", "model_B"), estimation = c("NLLS", "MLE"),
+net_dep(
+  formula = formula(),
+  data = list(),
+  G = list(),
+  model = c("model_A", "model_B"),
+  estimation = c("NLLS", "MLE"),
   hypothesis = c("lim", "het", "het_l", "het_r", "par"),
-  endogeneity = FALSE, correction = NULL, first_step = NULL,
-  z = NULL, data_first_step = NULL, exclusion_restriction = NULL,
-  start.val = NULL, to_weight = NULL, time_fixed_effect = NULL,
-  mle_controls = NULL, kappa = NULL)
+  endogeneity = FALSE,
+  correction = NULL,
+  first_step = NULL,
+  z = NULL,
+  data_first_step = NULL,
+  exclusion_restriction = NULL,
+  start.val = NULL,
+  to_weight = NULL,
+  time_fixed_effect = NULL,
+  ind_fixed_effect = NULL,
+  mle_controls = NULL,
+  kappa = NULL
+)
 }
 \arguments{
 \item{formula}{an object of class \code{formula}: a symbolic description of the model to be fitted. The constant (i.e. intercept) and the autogressive parameter needs not to be specified.}
@@ -23,7 +36,7 @@ net_dep(formula = formula(), data = list(), G = list(),
 
 \item{estimation}{string. One of \code{c("NLLS","MLE")}. They are used to implement respectively a non-linear least square and a Maximum Likelihood estimator.}
 
-\item{hypothesis}{string. One of \code{c("lim","het", "het_l", "het_r", "par")}. See details.}
+\item{hypothesis}{string. One of \code{c("lim","het", "het_l", "het_r", "par", "par_split_with", "par_split_btw", "par_split_with_btw")}. See details.}
 
 \item{endogeneity}{logical. Default is \code{FALSE}. If \code{TRUE}, \code{net_dep} implements a two-step correction procedure to control for the endogeneity of the network.}
 
@@ -43,6 +56,8 @@ net_dep(formula = formula(), data = list(), G = list(),
 
 \item{time_fixed_effect}{an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.}
 
+\item{ind_fixed_effect}{an optional vector. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.}
+
 \item{mle_controls}{a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.}
 
 \item{kappa}{a normalization level with default equals 1.}
@@ -55,7 +70,7 @@ Implement a number of modifications to the linear-in-means model to obtain diffe
 }
 \details{
 Agent's parameter-dependent centrality is obtained as a function of \itemize{
-\item the agent's characteristics and the performance of its socially connected peers, as in Battaglini, Leone Sciabolazza, Patacchini (2018), if \code{model = "model_B"};
+\item the agent's characteristics and the performance of its socially connected peers, as in Battaglini, Leone Sciabolazza, Patacchini (2020), if \code{model = "model_B"};
 \item \ifelse{latex}{the performance of its socially connected peers, as in Battaglini, Patacchini (2018), if \cr \code{model = "model_A"}.}{the performance of its socially connected peers, as in Battaglini, Patacchini (2018), if \code{model = "model_A"}.}
 }
 Peer effects are assumed to be homogenous if \code{hypothesis = "lim"}. They are assumed to be heterogenous by setting:\itemize{
@@ -63,9 +78,12 @@ Peer effects are assumed to be homogenous if \code{hypothesis = "lim"}. They are
 \item \code{hypothesis = "het_l"}, when peers' performance is susceptible to agent's characteristics and \code{model = "model_B"}.
 \item \code{hypothesis = "het_r"}, when agent's performance is susceptible to peers' characteristics and \code{model = "model_B"}.
 \item \code{hypothesis = "par"}, when \code{model = "model_B"}, if the network is formed by interactions between and within two different groups.
+\item \code{hypothesis = "par_split_with"}, when \code{model = "model_B"}, if the network is formed by interactions between and within two different groups, and interactions within each group are different from the other.
+\item \code{hypothesis = "par_split_btw"}, when \code{model = "model_B"}, if the network is formed by interactions between and within two different groups, and interactions between groups are different according to their direction.
+\item \code{hypothesis = "par_split_with_btw"}, when \code{model = "model_B"}, if the network is formed by interactions between and within two different groups, interactions within each group are different from the other, and interactions between groups are different according to their direction.
 }
 When \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}, the argument \code{z} is used to specify the source of heterogeneity: i.e. the attribute affecting the ability of the agent to influence or be influenced by peers.
-When \code{hypothesis} is equal to \code{"par"}, the argument \code{"z"} is used to partition observations in two groups: e.g. the generic element \emph{i} of vector \code{z} takes the value 1 if agent \emph{i} is member of the first group, and it takes 2 otherwise. \cr
+When \code{hypothesis} is equal to \code{"par"}, \code{"par_split_with"}, \code{"par_split_btw"}, or \code{"par_split_with_btw"} the argument \code{"z"} is used to partition observations in two groups: e.g. the generic element \emph{i} of vector \code{z} takes the value 1 if agent \emph{i} is member of the first group, and it takes 2 otherwise. \cr
 \cr
 If \code{endogeneity = TRUE}, a two-step estimation is implemented to control for network endogeneity. The argument \code{first_step} is used to control for the specification of the first-step model, e.g.:
 \itemize{
@@ -82,6 +100,9 @@ The starting value referring to the intercept (constant) must be labelled as "al
 \item \code{"theta_0","theta_1"}, if \code{hypothesis="het_l"}
 \item \code{"eta_0","eta_1"}, if \code{hypothesis="het_r"}
 \item \code{"phi_within","phi_between"}, if \code{hypothesis="par"}
+\item \code{"phi_within_0","phi_within_1","phi_between"}, if \code{hypothesis="par_split_with"}
+\item \code{"phi_within","phi_between_0","phi_between_1"}, if \code{hypothesis="par_split_btw"}
+\item \code{"phi_within_0","phi_within_1","phi_between_0","phi_between_1"}, if \code{hypothesis="par_split_with_btw"}
 }
 The interaction term when \code{hypothesis="het"} must be labelled  \code{"gamma"}. The label to be used for unobservables when \code{endogeneity = TRUE} is \code{"unobservables"}. When \code{estimation = "MLE"}, it is required to set also the starting value for the variance of the ML estimator. This should be labelled as "sigma". \cr
 The argument \code{mle_controls} takes a list of two objects. The first is a named numeric vector used to set upper and lower bounds for control variables. The second object is a vector used to set upper (first value) and lower (second value) bounds for the variance of the Maximum Likelihood estimator.\cr
@@ -157,7 +178,7 @@ are_factors <- c("party", "gender", "nchair")
 db_model_B[are_factors] <- lapply(db_model_B[are_factors], factor)
 
 # Specify formula
-f_model_B <- formula("les ~gender + party + nchair")
+f_model_B <- formula("les ~ gender + party + nchair")
 
 # Specify starting values
 starting <- c(alpha = 0.23952,
@@ -241,8 +262,8 @@ party_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                          z = z, start.val = starting)
 
 # Store and print results
-summary(party_estimate_model_B)
-party_estimate_model_B$centrality
+summary(party_model_B)
+party_model_B$centrality
 }
 # WARNING, This toy example is provided only for runtime execution.
 # Please refer to previous examples for sensible calculations.
@@ -259,10 +280,10 @@ lim_model_A_test <- net_dep(formula = f_model_A, data = db_model_A,
 summary(lim_model_A_test)
 }
 \references{
-Battaglini M., E. Patacchini (2018), "Influencing Connected Legislators",  Journal of Political Economy, forthcoming. \cr
-Battaglini M., V. Leone Sciabolazza, E. Patacchini (2018), "Effectiveness of Connected Legislators",  NBER, 24442. \cr
-Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2018), "Econet: An R package for the Estimation of parameter-dependent centrality measures", NBER Working Paper (24442). \cr
-Fafchamps, M., M. J. Leij and S. Goyal (2010), “Matching and network effects”, Journal of the European Economic Association, 8(1): 203-231. \cr
+Battaglini M., E. Patacchini (2018), "Influencing Connected Legislators," Journal of Political Economy, 126(6): 2277-2322. \cr
+Battaglini M., V. Leone Sciabolazza, E. Patacchini (2020), "Effectiveness of Connected Legislators,"  American Journal of Political Science, forthcoming. \cr
+Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2020), "Econet: An R package for the Estimation of parameter-dependent centrality measures", Mimeo. \cr
+Fafchamps, M., M. J. Leij and S. Goyal (2010), “Matching and network effects,” Journal of the European Economic Association, 8(1): 203-231. \cr
 Graham B. (2015), “Methods of identification in social networks,” Annual Review of Economics, 7, 465 - 485. \cr
 Graham B. (2017), “An econometric model of network formation with degree heterogeneity,” Econometrica 85 (4), 1033 - 1063. \cr
 }

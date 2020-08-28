@@ -44,7 +44,7 @@
 #'                        first_step = "standard",
 #'                        exclusion_restriction = G_exclusion_restriction,
 #'                        start.val = starting)
-#' quantify(fit = lim_model_B )
+#' quantify(lim_model_B)
 #' }
 #' # WARNING, This toy example is provided only for runtime execution.
 #' # Please refer to previous examples for sensible calculations.
@@ -76,12 +76,13 @@
       Gn <- fit$second_step$data$G
     }
 
+    to_display <- rownames(fit)
     fit <- summary.econet(fit, ...)$coefficients
     fit <- fit[ - which(rownames(fit) %in% "alpha"), ]
     sel <- which(rownames(fit) %in% "phi")
     regressor <- fit[ - sel, 1]
     parameter <- fit[sel, 1]
-    to_display <- rownames(regressor)
+    to_display <- to_display[grepl("alpha|phi", to_display) == FALSE]
     fit <- c(parameter,regressor)
 
     res.b <- fit

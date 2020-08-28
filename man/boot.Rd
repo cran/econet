@@ -5,19 +5,32 @@
 \alias{boot.econet}
 \title{boot: Bootstrap residuals with cross-sectional dependence}
 \usage{
-\method{boot}{econet}(object, hypothesis = c("lim", "het", "het_l",
-  "het_r", "par"), group = NULL, niter, weights, ...)
+\method{boot}{econet}(
+  object,
+  hypothesis = c("lim", "het", "het_l", "het_r", "par", "par_split_with",
+    "par_split_btw", "par_split_with_btw"),
+  group = NULL,
+  niter,
+  weights = FALSE,
+  parallel = FALSE,
+  cl,
+  ...
+)
 }
 \arguments{
 \item{object}{an object of class \code{econet} obtained using 'NLLS' estimation.}
 
-\item{hypothesis}{string. One of \code{c("lim","het", "het_l", "het_r", "par")}.}
+\item{hypothesis}{string. One of \code{c("lim","het", "het_l", "het_r", "par", "par_split_with", "par_split_btw", "par_split_with_btw")}.}
 
 \item{group}{\code{NULL} or vector of positive integers specifying the indices for resampling within groups.}
 
 \item{niter}{number of required iterations.}
 
-\item{weights}{logical. It is \code{TRUE} if the object \code{object} was estimated using \code{weights}, and \code{FALSE} otherwise.}
+\item{weights}{logical. It is \code{TRUE} if the object \code{object} was estimated using \code{weights}, and \code{FALSE} otherwise. Default \code{FALSE}.}
+
+\item{parallel}{logical. It is \code{TRUE} if the user wants to make use of parallelization. Default is \code{FALSE}. Observe that this option is still in its beta version and it has been tested only for the Windows platform.}
+
+\item{cl}{numeric. Number of cores to be used for parallelization.}
 
 \item{...}{additional parameters}
 }
@@ -28,7 +41,7 @@ a numeric vector containing bootstrapped standard errors  (see Anselin, 1990). I
 boot: Bootstrap residuals with cross-sectional dependence
 }
 \details{
-For additional details, see the vignette
+For additional details, see the vignette.
 Warning: This function is available only when \code{net_dep} is run with \code{estimation == "NLLS"}
 }
 \examples{
@@ -63,8 +76,11 @@ lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
 # Bootstrap
 # Warning: this may take a very long time to run.
 # Decrease the number of iterations to reduce runtime.
+# If you run econet on a Windows platform, you can try to set the
+# argument parallel = TRUE. However note that this option is still
+# in its beta version.
 boot_lim_estimate <- boot(object = lim_model_B, hypothesis = "lim",
-                          group = NULL, niter = 1000, weights = FALSE)
+                          group = NULL, niter = 10, weights = FALSE)
 boot_lim_estimate
 }
 }

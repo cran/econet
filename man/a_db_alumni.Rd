@@ -4,7 +4,8 @@
 \name{a_db_alumni}
 \alias{a_db_alumni}
 \title{Dataset from Battaglini, Patacchini (2018)}
-\format{an object of class \code{data.frame} with 2176 rows and 48 columns
+\format{
+an object of class \code{data.frame} with 2176 rows and 48 columns
 \describe{
 \item{id}{unique congressman id.}
 \item{PAC}{PAC contributions to a member of Congress (in US dollars).}
@@ -21,7 +22,8 @@
 \item{relcom}{dummy variable taking value of 1 if the congressman is member of a powerful committee (Appropriations, Budget, Rules and Ways and Means).}
 \item{time}{categorical variable. It takes 1 if the record refers to the 109th congress, 2 if the record refers to the 110th congress, 3 if the record refers to the 111th congress, 4 if the record refers to the 112th congress, 5 if the record refers to the 113th congress.}
 \item{weights}{for each congressman \emph{i}, the value is equal to the inverse of the variance of PAC contributions received by all congressmen in \emph{i}'s State of election.}
-}}
+}
+}
 \usage{
 data("a_db_alumni")
 }

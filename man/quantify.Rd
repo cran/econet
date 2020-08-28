@@ -51,7 +51,7 @@ lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
                        first_step = "standard",
                        exclusion_restriction = G_exclusion_restriction,
                        start.val = starting)
-quantify(fit = lim_model_B )
+quantify(lim_model_B)
 }
 # WARNING, This toy example is provided only for runtime execution.
 # Please refer to previous examples for sensible calculations.

@@ -4,15 +4,27 @@
 \alias{horse_race}
 \title{Compare the explanatory power of parameter.dependent network centrality measures with those of standard measures of network centrality.}
 \usage{
-horse_race(formula = formula(), centralities = c("indegree",
-  "outdegree", "degree", "betweenness", "incloseness", "outcloseness",
-  "closeness", "eigenvector"), directed = FALSE, weighted = FALSE,
-  normalization = FALSE, data = list(), unobservables = list(),
-  G = list(), model = c("model_A", "model_B"), estimation = c("NLLS",
-  "MLE"), endogeneity = FALSE, first_step = NULL,
-  data_first_step = NULL, exclusion_restriction = NULL,
-  start.val = NULL, to_weight = NULL, time_fixed_effect = NULL,
-  mle_controls = NULL)
+horse_race(
+  formula = formula(),
+  centralities = c("indegree", "outdegree", "degree", "betweenness", "incloseness",
+    "outcloseness", "closeness", "eigenvector"),
+  directed = FALSE,
+  weighted = FALSE,
+  normalization = FALSE,
+  data = list(),
+  unobservables = list(),
+  G = list(),
+  model = c("model_A", "model_B"),
+  estimation = c("NLLS", "MLE"),
+  endogeneity = FALSE,
+  first_step = NULL,
+  data_first_step = NULL,
+  exclusion_restriction = NULL,
+  start.val = NULL,
+  to_weight = NULL,
+  time_fixed_effect = NULL,
+  mle_controls = NULL
+)
 }
 \arguments{
 \item{formula}{an object of class \code{formula}: a symbolic description of the model to be fitted. The constant (i.e. intercept) and the autogressive parameter needs not to be specified.}
@@ -132,7 +144,7 @@ horse_model_test <- horse_race(formula = f_model, centralities = "betweenness",
 summary(horse_model_test)
 }
 \references{
-Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2018), "Econet: An R package for the Estimation of parameter.dependent centrality measures", NBER Working Paper (24442). \cr
+Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2020), "Econet: An R package for the Estimation of parameter-dependent centrality measures", Mimeo. \cr
 }
 \seealso{
 \code{\link{net_dep}}

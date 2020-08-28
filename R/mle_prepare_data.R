@@ -228,6 +228,133 @@ mle_prepare_data<- function(X, G, z, e, start.val, starting.values, model,
       tmp3[names(tmp1) %in% "phi_within"] <- -1 / max(e[["G_within"]])
       tmp2[names(tmp1) %in% "phi_between"] <- 1 / max(e[["G_between"]])
       tmp3[names(tmp1) %in% "phi_between"] <- -1 / max(e[["G_between"]])
+    } else if (hypothesis == "par_split_with") {
+
+      if (is.null(tt)) {
+        partitions <- party_connection_split(z, G)
+      } else {
+        partitions <- time_party_connection_split(z, G, tt)
+      }
+
+      e[["G_within_0"]] <- partitions[[1]]
+      e[["G_within_1"]] <- partitions[[2]]
+      e[["G_between"]] <- partitions[[3]] + partitions[[4]]
+
+      if (is.null(start.val)) {
+        tmp1 <- starting.values
+        tmp1[["alpha"]] <- 0.01
+        tmp1[["phi_within_0"]] <- 0.01
+        tmp1[["phi_within_1"]] <- 0.01
+        tmp1[["phi_between"]] <- 0.01
+        tmp1[["sigma"]] <- 0.1
+        tmp1 <- unlist(tmp1)
+      } else {
+        tmp1 <- unlist(start.val)
+      }
+
+      if (is.null(mle_controls)) {
+        tmp2 <- tmp1 + 100
+        tmp3 <- tmp1 - 100
+        tmp2[names(tmp1) %in% "sigma"] <- 10
+        tmp3[names(tmp1) %in% "sigma"] <- 0.01
+      } else {
+        tmp2 <- tmp1 + mle_controls[[1]]
+        tmp3 <- tmp1 - mle_controls[[1]]
+        tmp2[names(tmp1) %in% "sigma"] <- mle_controls[[2]][1]
+        tmp3[names(tmp1) %in% "sigma"] <- mle_controls[[2]][2]
+      }
+      tmp2[names(tmp1) %in% "phi_within_0"] <- 1 / max(e[["G_within_0"]])
+      tmp3[names(tmp1) %in% "phi_within_0"] <- -1 / max(e[["G_within_0"]])
+      tmp2[names(tmp1) %in% "phi_within_1"] <- 1 / max(e[["G_within_1"]])
+      tmp3[names(tmp1) %in% "phi_within_1"] <- -1 / max(e[["G_within_1"]])
+      tmp2[names(tmp1) %in% "phi_between"] <- 1 / max(e[["G_between"]])
+      tmp3[names(tmp1) %in% "phi_between"] <- -1 / max(e[["G_between"]])
+    } else if (hypothesis == "par_split_btw") {
+
+      if (is.null(tt)) {
+        partitions <- party_connection_split(z, G)
+      } else {
+        partitions <- time_party_connection_split(z, G, tt)
+      }
+
+      e[["G_within"]] <- partitions[[1]] + partitions[[2]]
+      e[["G_between_01"]] <- partitions[[3]]
+      e[["G_between_10"]] <- partitions[[4]]
+
+      if (is.null(start.val)) {
+        tmp1 <- starting.values
+        tmp1[["alpha"]] <- 0.01
+        tmp1[["phi_within"]] <- 0.01
+        tmp1[["phi_between_01"]] <- 0.01
+        tmp1[["phi_between_10"]] <- 0.01
+        tmp1[["sigma"]] <- 0.1
+        tmp1 <- unlist(tmp1)
+      } else {
+        tmp1 <- unlist(start.val)
+      }
+
+      if (is.null(mle_controls)) {
+        tmp2 <- tmp1 + 100
+        tmp3 <- tmp1 - 100
+        tmp2[names(tmp1) %in% "sigma"] <- 10
+        tmp3[names(tmp1) %in% "sigma"] <- 0.01
+      } else {
+        tmp2 <- tmp1 + mle_controls[[1]]
+        tmp3 <- tmp1 - mle_controls[[1]]
+        tmp2[names(tmp1) %in% "sigma"] <- mle_controls[[2]][1]
+        tmp3[names(tmp1) %in% "sigma"] <- mle_controls[[2]][2]
+      }
+      tmp2[names(tmp1) %in% "phi_within"] <- 1 / max(e[["G_within"]])
+      tmp3[names(tmp1) %in% "phi_within"] <- -1 / max(e[["G_within"]])
+      tmp2[names(tmp1) %in% "phi_between_01"] <- 1 / max(e[["G_between_01"]])
+      tmp3[names(tmp1) %in% "phi_between_01"] <- -1 / max(e[["G_between_01"]])
+      tmp2[names(tmp1) %in% "phi_between_10"] <- 1 / max(e[["G_between_10"]])
+      tmp3[names(tmp1) %in% "phi_between_10"] <- -1 / max(e[["G_between_10"]])
+    } else if (hypothesis == "par_split_with_btw") {
+
+      if (is.null(tt)) {
+        partitions <- party_connection_split(z, G)
+      } else {
+        partitions <- time_party_connection_split(z, G, tt)
+      }
+
+      e[["G_within_0"]] <- partitions[[1]]
+      e[["G_within_1"]] <- partitions[[2]]
+      e[["G_between_01"]] <- partitions[[3]]
+      e[["G_between_10"]] <- partitions[[4]]
+
+      if (is.null(start.val)) {
+        tmp1 <- starting.values
+        tmp1[["alpha"]] <- 0.01
+        tmp1[["phi_within_0"]] <- 0.01
+        tmp1[["phi_within_1"]] <- 0.01
+        tmp1[["phi_between_01"]] <- 0.01
+        tmp1[["phi_between_10"]] <- 0.01
+        tmp1[["sigma"]] <- 0.1
+        tmp1 <- unlist(tmp1)
+      } else {
+        tmp1 <- unlist(start.val)
+      }
+
+      if (is.null(mle_controls)) {
+        tmp2 <- tmp1 + 100
+        tmp3 <- tmp1 - 100
+        tmp2[names(tmp1) %in% "sigma"] <- 10
+        tmp3[names(tmp1) %in% "sigma"] <- 0.01
+      } else {
+        tmp2 <- tmp1 + mle_controls[[1]]
+        tmp3 <- tmp1 - mle_controls[[1]]
+        tmp2[names(tmp1) %in% "sigma"] <- mle_controls[[2]][1]
+        tmp3[names(tmp1) %in% "sigma"] <- mle_controls[[2]][2]
+      }
+      tmp2[names(tmp1) %in% "phi_within_0"] <- 1 / max(e[["G_within_0"]])
+      tmp3[names(tmp1) %in% "phi_within_0"] <- -1 / max(e[["G_within_0"]])
+      tmp2[names(tmp1) %in% "phi_within_1"] <- 1 / max(e[["G_within_1"]])
+      tmp3[names(tmp1) %in% "phi_within_1"] <- -1 / max(e[["G_within_1"]])
+      tmp2[names(tmp1) %in% "phi_between_01"] <- 1 / max(e[["G_between_01"]])
+      tmp3[names(tmp1) %in% "phi_between_01"] <- -1 / max(e[["G_between_01"]])
+      tmp2[names(tmp1) %in% "phi_between_10"] <- 1 / max(e[["G_between_10"]])
+      tmp3[names(tmp1) %in% "phi_between_10"] <- -1 / max(e[["G_between_10"]])
     }
   }
 

@@ -24,7 +24,10 @@ nls_prepare_data <- function(dependent_variable, X, G, z, e, start.val, starting
            het = "solve_block(I - G %*% (phi * I + gamma * G_heterogeneity))",
            het_l = "solve_block(I - (theta_0 * I - theta_1 * G_heterogeneity) %*% G)",
            het_r = "solve_block(I - G %*% (eta_0 * I - eta_1 * G_heterogeneity))",
-           par = "solve_block(I - phi_within * G_within - phi_between * G_between)")
+           par = "solve_block(I - phi_within * G_within - phi_between * G_between)",
+           par_split_with = "solve_block(I - phi_within_0 * G_within_0 - phi_within_1 * G_within_1 - phi_between * G_between)",
+           par_split_btw = "solve_block(I - phi_within * G_within - phi_between_01 * G_between_01 - phi_between_10 * G_between_10)",
+           par_split_with_btw = "solve_block(I - phi_within_0 * G_within_0 - phi_within_1 * G_within_1 - phi_between_01 * G_between_01 - phi_between_10 * G_between_10)")
   }
 
   model_choice <- function(x, y, z, model) {
@@ -101,6 +104,61 @@ nls_prepare_data <- function(dependent_variable, X, G, z, e, start.val, starting
     if (is.null(start.val)) {
       starting.values[["phi_within"]] <- 0.01
       starting.values[["phi_between"]] <- 0.01
+    }
+  } else if (hypothesis == "par_split_with") {
+
+    if (is.null(tt)) {
+      partitions <- party_connection_split(z, G)
+    } else {
+      partitions <- time_party_connection_split(z, G, tt)
+    }
+
+    e[["G_within_0"]] <- partitions[[1]]
+    e[["G_within_1"]] <- partitions[[2]]
+    e[["G_between"]] <- partitions[[3]] + partitions[[4]]
+
+    if (is.null(start.val)) {
+      starting.values[["phi_within_0"]] <- 0.01
+      starting.values[["phi_within_1"]] <- 0.01
+      starting.values[["phi_between"]] <- 0.01
+    }
+
+  } else if (hypothesis == "par_split_btw") {
+
+    if (is.null(tt)) {
+      partitions <- party_connection_split(z, G)
+    } else {
+      partitions <- time_party_connection_split(z, G, tt)
+    }
+
+    e[["G_within"]] <- partitions[[1]] + partitions[[2]]
+    e[["G_between_01"]] <- partitions[[3]]
+    e[["G_between_10"]] <- partitions[[4]]
+
+    if (is.null(start.val)) {
+      starting.values[["phi_within"]] <- 0.01
+      starting.values[["phi_between_01"]] <- 0.01
+      starting.values[["phi_between_10"]] <- 0.01
+    }
+
+  } else if (hypothesis == "par_split_with_btw") {
+
+    if (is.null(tt)) {
+      partitions <- party_connection_split(z, G)
+    } else {
+      partitions <- time_party_connection_split(z, G, tt)
+    }
+
+    e[["G_within_0"]] <- partitions[[1]]
+    e[["G_within_1"]] <- partitions[[2]]
+    e[["G_between_01"]] <- partitions[[3]]
+    e[["G_between_10"]] <- partitions[[4]]
+
+    if (is.null(start.val)) {
+      starting.values[["phi_within_0"]] <- 0.01
+      starting.values[["phi_within_1"]] <- 0.01
+      starting.values[["phi_between_01"]] <- 0.01
+      starting.values[["phi_between_10"]] <- 0.01
     }
   }
 

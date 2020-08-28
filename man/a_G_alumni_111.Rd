@@ -4,7 +4,9 @@
 \name{a_G_alumni_111}
 \alias{a_G_alumni_111}
 \title{Column-normalized adjacency matrix representing the alumni network of the 111th U.S. Congress.}
-\format{an object of class \code{Matrix} with 426 rows and 426 columns}
+\format{
+an object of class \code{Matrix} with 426 rows and 426 columns
+}
 \usage{
 data("a_G_alumni_111")
 }

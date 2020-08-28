@@ -11,6 +11,9 @@ dep_mat <- function(fit, type){
          het = list(fit$data[["G"]], fit$data[["G_heterogeneity"]]),
          het_l = list(fit$data[["G"]], fit$data[["G_heterogeneity"]]),
          het_r = list(fit$data[["G"]], fit$data[["G_heterogeneity"]]),
-         par = list(fit$data[["G_within"]], fit$data[["G_between"]])
+         par = list(fit$data[["G_within"]], fit$data[["G_between"]]),
+         par_split_btw = list(fit$data[["G_within"]], fit$data[["G_between_01"]], fit$data[["G_between_10"]]),
+         par_split_with = list(fit$data[["G_within_0"]], fit$data[["G_within_1"]], fit$data[["G_between"]]),
+         par_split_with_btw = list(fit$data[["G_within_0"]], fit$data[["G_within_1"]], fit$data[["G_between_01"]], fit$data[["G_between_10"]])
   )
 }

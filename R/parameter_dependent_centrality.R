@@ -43,6 +43,29 @@ parameter_dependent_centrality <- function(second_step, hypothesis, I, G, e) {
     phi_between <- coef_second_step[names(coef_second_step) %in% "phi_between"]
     centrality <- solve_block(I - phi_within * e[["G_within"]] -
                                 phi_between * e[["G_between"]]) %*% e[["Ones"]]
+  } else if (hypothesis == "par_split_with") {
+    phi_within_0 <- coef_second_step[names(coef_second_step) %in% "phi_within_0"]
+    phi_within_1 <- coef_second_step[names(coef_second_step) %in% "phi_within_1"]
+    phi_between <- coef_second_step[names(coef_second_step) %in% "phi_between"]
+    centrality <- solve_block(I - phi_within_0 * e[["G_within_0"]] -
+                                phi_within_1 * e[["G_within_1"]] -
+                                phi_between * e[["G_between"]]) %*% e[["Ones"]]
+  } else if (hypothesis == "par_split_btw") {
+    phi_within <- coef_second_step[names(coef_second_step) %in% "phi_within"]
+    phi_between_01 <- coef_second_step[names(coef_second_step) %in% "phi_between_01"]
+    phi_between_10 <- coef_second_step[names(coef_second_step) %in% "phi_between_10"]
+    centrality <- solve_block(I - phi_within * e[["G_within"]] -
+                                phi_between_01 * e[["G_between_01"]] -
+                                phi_between_10 * e[["G_between_10"]]) %*% e[["Ones"]]
+  } else if (hypothesis == "par_split_with_btw") {
+    phi_within_0 <- coef_second_step[names(coef_second_step) %in% "phi_within_0"]
+    phi_within_1 <- coef_second_step[names(coef_second_step) %in% "phi_within_1"]
+    phi_between_01 <- coef_second_step[names(coef_second_step) %in% "phi_between_01"]
+    phi_between_10 <- coef_second_step[names(coef_second_step) %in% "phi_between_10"]
+    centrality <- solve_block(I - phi_within_0 * e[["G_within_0"]] -
+                                phi_within_1 * e[["G_within_1"]] -
+                                phi_between_01 * e[["G_between_01"]] -
+                                phi_between_10 * e[["G_between_10"]]) %*% e[["Ones"]]
   }
 
   centrality <- data.frame("parameter.dependent" = centrality)
