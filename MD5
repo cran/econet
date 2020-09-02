@@ -1,4 +1,4 @@
-d5e3b5a4269f4c98c674349cf1fc7695 *DESCRIPTION
+d7f49dd7501e1adffc7731b396edfeb8 *DESCRIPTION
 6e7afd9448306514ef55f87d0a3cb7ca *LICENSE
 1b154cb3b087c0fd6b15da0e825be7cf *NAMESPACE
 a4dd15aa122920f7a176a39958ac4438 *R/AIC.R
@@ -41,7 +41,7 @@ d69c2e983ce3c124ca3ac4b99d450083 *R/mle_party_split_btw.R
 9e1f308a2b9ff8b596caa69db3256427 *R/mle_party_split_with.R
 7d9df6ffaf7008d0247e0677b6b06b8b *R/mle_party_split_with_btw.R
 79dda01dc760694475c4f743d16d3ded *R/mle_prepare_data.R
-16415998cfd6c53f07b90b62bb5cda45 *R/net_dep.R
+bc8291b8bbe15b1a391f6153853b57c3 *R/net_dep.R
 17b65fe8259fc3d63458ce7cc90a7544 *R/nls_prepare_data.R
 a76e33d69c49b6cbf6ed632681d724a9 *R/par_dep.R
 afb171cce97a0ca70477c802f7b6710a *R/par_dep_mat.R
@@ -50,7 +50,7 @@ f9afd8982a0840f64126b560ebba8e3e *R/party_connection.R
 934a16bf250aeff35e23122a1c8ee3c5 *R/party_connection_split.R
 f6c0741df3c4e78366d85f5851f4f2ab *R/prepare_data.R
 87b521585fdd26ae2a1e47d5212b053c *R/print.R
-7b63923a746611707fcbf969f8855189 *R/quantify.R
+bd586823da4dfac39ebb4c5f159a65e4 *R/quantify.R
 b23aa1858af7fff4bc1fbbbcc7e2e0c7 *R/remove_edge.R
 8b89f92c6b64baf176d2eb9d51e41196 *R/replace_start_value.R
 4509351b00d8a526d5aa8a3352bd730f *R/sample_data.R
@@ -76,7 +76,7 @@ f5048f29bb8e8aeb9e3e18ddc8819bbc *README.md
 04889c7fcf9c5321b03bd6eb01239887 *data/a_db_alumni.rda
 1729d97e249634d8e6ee0fbfadc4c0ed *data/db_alumni_test.rda
 692234b2f4204fc7b707fb5a821f8c8d *data/db_cosponsor.rda
-d008b69824ca63e6edec7db91d6c56c6 *inst/doc/econet.pdf
+79bf68b192750c1fb51ff08e61e31cc0 *inst/doc/econet.pdf
 d41cba1f3b2697e10f059177ec4e2d21 *man/G_alumni_111.Rd
 0a9325ac6b1619c50546d532b0ab6fe5 *man/G_cosponsor_111.Rd
 643c26b341e9236737bfa3d481ce1292 *man/G_model_A_test.Rd
@@ -86,7 +86,7 @@ a9b0bcdb7d52bc8cf1d45e4bc3ab189d *man/boot.Rd
 42e844e013936bb060ec32155c8448be *man/db_alumni_test.Rd
 c0cbe911a34d66d2c9f0774c7958ba73 *man/db_cosponsor.Rd
 19aa8306c28774cfba03499804abf5e7 *man/horse_race.Rd
-99eca3d3f8170a68e2df5ac4877c6eed *man/net_dep.Rd
+505d327a66279de950de3e730e47c462 *man/net_dep.Rd
 788204132af28528d370fd1ee742fc62 *man/quantify.Rd
 ee9539108fc2f4b30cafca5aa8b55167 *vignettes/Figure1.png
 fd31419710bd8ea8c60e181fb30730ff *vignettes/econet.tex

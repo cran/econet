@@ -10,7 +10,8 @@ net_dep(
   G = list(),
   model = c("model_A", "model_B"),
   estimation = c("NLLS", "MLE"),
-  hypothesis = c("lim", "het", "het_l", "het_r", "par"),
+  hypothesis = c("lim", "het", "het_l", "het_r", "par", "par_split_with",
+    "par_split_btw", "par_split_with_btw"),
   endogeneity = FALSE,
   correction = NULL,
   first_step = NULL,
@@ -44,7 +45,7 @@ net_dep(
 
 \item{first_step}{\ifelse{latex}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard"}\cr\code{"fe", "shortest", "coauthors", "degree")}. See details.}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard","fe", "shortest", "coauthors", "degree")}. See details.}}
 
-\item{z}{numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis = "par"}. See details.}
+\item{z}{numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis} is equal to \code{"par"}, \code{"par_split_with"}, \code{"par_split_btw"}, or \code{"par_split_with_btw")}. See details.}
 
 \item{data_first_step}{an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.}
 

@@ -9,7 +9,7 @@
 #' @param endogeneity logical. Default is \code{FALSE}. If \code{TRUE}, \code{net_dep} implements a two-step correction procedure to control for the endogeneity of the network.
 #' @param correction Default is \code{NULL}. If \code{endogeneity = TRUE}, it is required to specify if the main regression should use an instrumental variable ("iv") or Heckman ("heckman") approach.
 #' @param first_step \ifelse{latex}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard"}\cr\code{"fe", "shortest", "coauthors", "degree")}. See details.}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard","fe", "shortest", "coauthors", "degree")}. See details.}
-#' @param z numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis = "par"}. See details.
+#' @param z numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis} is equal to \code{"par"}, \code{"par_split_with"}, \code{"par_split_btw"}, or \code{"par_split_with_btw")}. See details.
 #' @param data_first_step an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.
 #' @param exclusion_restriction an object of class \code{Matrix} representing the exogenous matrix used to instrument the endogenous social network, if \code{endogeneity = TRUE}.  Row and column names must be specified and match the order of the observations in \code{data}.
 #' @param start.val an optional list containing the starting values for the estimations. Object names must match the names provided in \code{formula}. It is also required to specify the value of both the constant and the decay parameter(s). See details.
@@ -243,7 +243,7 @@ net_dep <- function(formula = formula(),
                     G = list(),
                     model = c("model_A","model_B"),
                     estimation = c("NLLS","MLE"),
-                    hypothesis = c("lim","het","het_l","het_r","par"),
+                    hypothesis = c("lim","het","het_l","het_r","par", "par_split_with", "par_split_btw", "par_split_with_btw"),
                     endogeneity = FALSE,
                     correction = NULL,
                     first_step = NULL,

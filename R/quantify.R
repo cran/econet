@@ -76,8 +76,8 @@
       Gn <- fit$second_step$data$G
     }
 
-    to_display <- rownames(fit)
     fit <- summary.econet(fit, ...)$coefficients
+    to_display <- rownames(fit)
     fit <- fit[ - which(rownames(fit) %in% "alpha"), ]
     sel <- which(rownames(fit) %in% "phi")
     regressor <- fit[ - sel, 1]
