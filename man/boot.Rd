@@ -12,6 +12,8 @@
   group = NULL,
   niter,
   weights = FALSE,
+  delta = NULL,
+  na.rm = FALSE,
   parallel = FALSE,
   cl,
   ...
@@ -27,6 +29,10 @@
 \item{niter}{number of required iterations.}
 
 \item{weights}{logical. It is \code{TRUE} if the object \code{object} was estimated using \code{weights}, and \code{FALSE} otherwise. Default \code{FALSE}.}
+
+\item{delta}{Default is \code{NULL}.It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be higher than zero and lower than the spectral radius of \code{G}. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.}
+
+\item{na.rm}{logical. Should missing values (including \code{NaN}) be removed?}
 
 \item{parallel}{logical. It is \code{TRUE} if the user wants to make use of parallelization. Default is \code{FALSE}. Observe that this option is still in its beta version and it has been tested only for the Windows platform.}
 

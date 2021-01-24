@@ -21,8 +21,12 @@
 
     }
 
-    if (class(x) == "nls" | class(x) == "lm") {
-      res <- formula(x, ...)
+    if (class(x) == "nls") {
+      if (!is.null(x$m$mformula)) {
+        res <- formula(x$m$mformula)
+      } else {
+        res <- formula(x, ...)
+      }
     } else {
       res <- bbmle::formula(x, ...)
     }

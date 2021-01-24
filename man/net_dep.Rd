@@ -16,14 +16,15 @@ net_dep(
   correction = NULL,
   first_step = NULL,
   z = NULL,
-  data_first_step = NULL,
+  formula_first_step = NULL,
   exclusion_restriction = NULL,
   start.val = NULL,
   to_weight = NULL,
   time_fixed_effect = NULL,
   ind_fixed_effect = NULL,
   mle_controls = NULL,
-  kappa = NULL
+  kappa = NULL,
+  delta = NULL
 )
 }
 \arguments{
@@ -47,7 +48,7 @@ net_dep(
 
 \item{z}{numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis} is equal to \code{"par"}, \code{"par_split_with"}, \code{"par_split_btw"}, or \code{"par_split_with_btw")}. See details.}
 
-\item{data_first_step}{an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.}
+\item{formula_first_step}{an optional object of class \code{formula}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}. The name of the dependent variable must be the same used in the field  \code{formula}.}
 
 \item{exclusion_restriction}{an object of class \code{Matrix} representing the exogenous matrix used to instrument the endogenous social network, if \code{endogeneity = TRUE}.  Row and column names must be specified and match the order of the observations in \code{data}.}
 
@@ -57,11 +58,13 @@ net_dep(
 
 \item{time_fixed_effect}{an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.}
 
-\item{ind_fixed_effect}{an optional vector. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.}
+\item{ind_fixed_effect}{an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.}
 
 \item{mle_controls}{a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.}
 
-\item{kappa}{a normalization level with default equals 1.}
+\item{kappa}{a normalization level with default equals 1 used in MLE estimation.}
+
+\item{delta}{Default is \code{NULL}. To be used when \code{estimation = "NLLS"}. It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be between the spectral radius of \code{G} and its opposite value. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.}
 }
 \value{
 A list of three objects: i) Estimates of the main regression; ii) The vector of agents' parameter-dependent centrality; iii) Estimates of the first-step regression (if \code{endogeneity = TRUE})

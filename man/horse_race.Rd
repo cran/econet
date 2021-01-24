@@ -18,12 +18,14 @@ horse_race(
   estimation = c("NLLS", "MLE"),
   endogeneity = FALSE,
   first_step = NULL,
-  data_first_step = NULL,
   exclusion_restriction = NULL,
   start.val = NULL,
   to_weight = NULL,
   time_fixed_effect = NULL,
-  mle_controls = NULL
+  ind_fixed_effect = NULL,
+  mle_controls = NULL,
+  kappa = NULL,
+  delta = NULL
 )
 }
 \arguments{
@@ -51,8 +53,6 @@ horse_race(
 
 \item{first_step}{\ifelse{latex}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard",}\cr\code{"fe", "shortest", "coauthors", "degree")}. See details.}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard","fe", "shortest", "coauthors", "degree")}. See details.}}
 
-\item{data_first_step}{an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.}
-
 \item{exclusion_restriction}{an object of class \code{Matrix} representing the exogenous matrix used to instrument the endogenous social network, if \code{unobservables} is non-\code{NULL}.  Row and column names must be specified and match the order of the observations in \code{data}.}
 
 \item{start.val}{an optional list containing the starting values for the estimations. Object names must match the names provided in \code{formula}. It is also required to specify the value of both the constant and the decay parameter(s).}
@@ -61,7 +61,13 @@ horse_race(
 
 \item{time_fixed_effect}{an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.}
 
-\item{mle_controls}{a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator.}
+\item{ind_fixed_effect}{an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.}
+
+\item{mle_controls}{a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.}
+
+\item{kappa}{a normalization level with default equals 1 used in MLE estimation.}
+
+\item{delta}{Default is \code{NULL}. To be used when \code{estimation = "NLLS"}. It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be higher than zero and lower than the spectral radius of \code{G}. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.}
 }
 \value{
 A list of two objects:

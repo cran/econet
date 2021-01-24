@@ -10,14 +10,15 @@
 #' @param correction Default is \code{NULL}. If \code{endogeneity = TRUE}, it is required to specify if the main regression should use an instrumental variable ("iv") or Heckman ("heckman") approach.
 #' @param first_step \ifelse{latex}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard"}\cr\code{"fe", "shortest", "coauthors", "degree")}. See details.}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard","fe", "shortest", "coauthors", "degree")}. See details.}
 #' @param z numeric vector. It specifies the source of heterogeneity for peer effects when \code{hypothesis} is equal to \code{"het"}, \code{"het_l"}, or \code{"het_r"}. Alternatively, it specifies the groups in which the network should be partitioned when \code{hypothesis} is equal to \code{"par"}, \code{"par_split_with"}, \code{"par_split_btw"}, or \code{"par_split_with_btw")}. See details.
-#' @param data_first_step an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.
+#' @param formula_first_step an optional object of class \code{formula}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}. The name of the dependent variable must be the same used in the field  \code{formula}.
 #' @param exclusion_restriction an object of class \code{Matrix} representing the exogenous matrix used to instrument the endogenous social network, if \code{endogeneity = TRUE}.  Row and column names must be specified and match the order of the observations in \code{data}.
 #' @param start.val an optional list containing the starting values for the estimations. Object names must match the names provided in \code{formula}. It is also required to specify the value of both the constant and the decay parameter(s). See details.
 #' @param to_weight an optional vector of weights to be used in the fitting process to indicate that different observations have different variances. Should be \code{NULL} or a numeric vector. If non-\code{NULL}, it can be used to fit a weighted non-linear least squares (\code{estimation = "NLLS"}).
 #' @param time_fixed_effect an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.
-#' @param ind_fixed_effect an optional vector. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.
+#' @param ind_fixed_effect an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.
 #' @param mle_controls a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.
-#' @param kappa a normalization level with default equals 1.
+#' @param kappa a normalization level with default equals 1 used in MLE estimation.
+#' @param delta Default is \code{NULL}. To be used when \code{estimation = "NLLS"}. It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be between the spectral radius of \code{G} and its opposite value. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.
 #' @return A list of three objects: i) Estimates of the main regression; ii) The vector of agents' parameter-dependent centrality; iii) Estimates of the first-step regression (if \code{endogeneity = TRUE})
 #' @details Agent's parameter-dependent centrality is obtained as a function of \itemize{
 #' \item the agent's characteristics and the performance of its socially connected peers, as in Battaglini, Leone Sciabolazza, Patacchini (2020), if \code{model = "model_B"};
@@ -248,14 +249,15 @@ net_dep <- function(formula = formula(),
                     correction = NULL,
                     first_step = NULL,
                     z = NULL,
-                    data_first_step = NULL,
+                    formula_first_step = NULL,
                     exclusion_restriction = NULL,
                     start.val = NULL,
                     to_weight = NULL,
                     time_fixed_effect = NULL,
                     ind_fixed_effect = NULL,
                     mle_controls = NULL,
-                    kappa = NULL) {
+                    kappa = NULL,
+                    delta = NULL) {
 
   if (missing(kappa) & hypothesis != "het_l") {
     kappa = max(rowSums(G))
@@ -269,6 +271,12 @@ net_dep <- function(formula = formula(),
   y_name <- data_list[["y_name"]]
   factors <- data_list[["factors"]]
   tt <- data_list[["time"]]
+
+  if (!is.null(ind_fixed_effect)) {
+    n_fe <- length(unique(data[, ind_fixed_effect]))
+  } else {
+    n_fe <- 0
+  }
 
   env <- environment()
   check_entries(as.list.environment(env))
@@ -297,14 +305,41 @@ net_dep <- function(formula = formula(),
     first_step <- "fe"
   }
 
+  check_first_step <- !is.null(formula_first_step)
+
+  if (check_first_step) {
+    if (!is.null(time_fixed_effect)) {
+      formula_first_step_vars <- all.vars(formula_first_step)
+      if (time_fixed_effect %in% formula_first_step_vars == F) {
+        formula_first_step <- formula(paste0(formula_first_step, " + ", time_fixed_effect))
+      }
+    }
+  }
+
   if (endogeneity) {
 
-    if (!is.null(data_first_step)) {
-      e_first_step <- data_first_step
+    if (check_first_step) {
+      data_first_step_list <- prepare_data(formula_first_step, data, time_fixed_effect)
+      X_first_step <- data_first_step_list[["data"]]
+      factors_first_step <- data_first_step_list[["factors"]]
+      if (is.null(exclusion_restriction)) {
+        e_first_step <- create_dyadic_db_no_excl(data = X_first_step[, - 1], G = G,
+                                                 option = first_step, tt = tt, is_dummy = factors_first_step)
+      } else {
+        e_first_step <- create_dyadic_db(data = X_first_step[, - 1], G = G,
+                                         exclusion_restriction = exclusion_restriction,
+                                         option = first_step, tt = tt, is_dummy = factors_first_step)
+      }
     } else {
-      e_first_step <- create_dyadic_db(data = X[, - 1], G = G,
-                      exclusion_restriction = exclusion_restriction,
-                      option = first_step, tt = tt, is_dummy = factors)
+
+      if (is.null(exclusion_restriction)) {
+        e_first_step <- create_dyadic_db_no_excl(data = X[, - 1], G = G,
+                                         option = first_step, tt = tt, is_dummy = factors)
+      } else {
+        e_first_step <- create_dyadic_db(data = X[, - 1], G = G,
+                                         exclusion_restriction = exclusion_restriction,
+                                         option = first_step, tt = tt, is_dummy = factors)
+      }
     }
 
     if (first_step == "fe") {
@@ -327,11 +362,21 @@ net_dep <- function(formula = formula(),
       stop('First step cannot be identified. Try changing specification.')
     }
 
+    if (length(res_form) < nrow(e_first_step)) {
+      stop('First step cannot be identified. Try changing specification.')
+    }
+
     if (correction == "heckman") {
 
       if (!is.null(tt)) {
-        fed <- colnames(X)[which(factors %in% "time_fixed_effect") + 1]
-        time <- rep(0, nrow(e_first_step))
+
+        if (check_first_step == FALSE) {
+          fed <- colnames(X)[which(factors %in% "time_fixed_effect") + 1]
+          time <- rep(0, nrow(e_first_step))
+        } else {
+          fed <- colnames(X_first_step)[which(factors_first_step %in% "time_fixed_effect") + 1]
+          time <- rep(0, nrow(e_first_step))
+        }
 
         for (i in 1:length(fed)) {
           time <- time + ifelse (e_first_step[, fed[i]] == 1, i + 1, 0)
@@ -401,7 +446,7 @@ net_dep <- function(formula = formula(),
   nls_formula_fit <- set_second_step[[1]]
   starting.values <- set_second_step[[2]]
 
-  if (estimation == "NLLS") {
+  if (estimation == "NLLS" & is.null(delta)) {
 
     e <- set_second_step[[3]]
     set.control <- nls.lm.control(ftol = sqrt(.Machine$double.eps) / 1000,
@@ -416,10 +461,45 @@ net_dep <- function(formula = formula(),
                            trace = T, weights = to_weight,
                            control = set.control)
       second_step$data <- e
+      second_step$m$mformula <- NULL
+      second_step$delta <- FALSE
     } else {
       second_step <- nlsLM(nls_formula_fit, start = starting.values, data = e,
                            trace= T, control = set.control)
       second_step$data <- e
+      second_step$m$mformula <- NULL
+      second_step$delta <- FALSE
+    }
+
+  } else if (estimation == "NLLS" & !is.null(delta)) {
+
+    e <- set_second_step[[3]]
+    set.control <- nls.lm.control(ftol = sqrt(.Machine$double.eps) / 1000,
+                                  ptol = sqrt(.Machine$double.eps) / 1000,
+                                  gtol = 0, diag = list(), epsfcn = 0,
+                                  factor = 100, maxfev = integer(),
+                                  maxiter = 300, nprint = 0)
+
+    nls_const <- nls_constrained(nls_formula_fit = nls_formula_fit, G = G, e = e,
+                    hypothesis = hypothesis, model = model, delta = delta, to_weight = to_weight)
+
+    nls_formula_fit_bou <- nls_const$nls_formula_fit
+    e_new <- nls_const$e
+
+    if (!is.null(to_weight)) {
+      e_new[["to_weight"]] <- nls_const$to_weight
+      second_step <- nlsLM(nls_formula_fit_bou, start = starting.values, data = e_new,
+                           trace = T, weights = to_weight,
+                           control = set.control)
+      second_step$data <- e
+      second_step$m$mformula <- nls_formula_fit
+      second_step$delta <- TRUE
+    } else {
+      second_step <- nlsLM(nls_formula_fit_bou, start = starting.values, data = e_new,
+                           trace= T, control = set.control)
+      second_step$data <- e
+      second_step$m$mformula <- nls_formula_fit
+      second_step$delta <- TRUE
     }
 
   } else if (estimation == "MLE") {

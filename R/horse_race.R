@@ -12,12 +12,14 @@
 #' @param estimation string. One of \code{c("NLLS","MLE")}. They are used to implement respectively a non-linear least square and a maximum likelihood estimator.
 #' @param endogeneity logical. Default is \code{FALSE}. If \code{TRUE}, \code{net_dep} implements a two-step correction procedure to control for the endogeneity of the network.
 #' @param first_step \ifelse{latex}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard",}\cr\code{"fe", "shortest", "coauthors", "degree")}. See details.}{Default is NULL. If \code{endogeneity = TRUE}, it requires to specify one of \code{c("standard","fe", "shortest", "coauthors", "degree")}. See details.}
-#' @param data_first_step an optional object of class \code{data.frame}. If provided, it is used to implement the first step of the estimation when \code{endogeneity = TRUE}.
 #' @param exclusion_restriction an object of class \code{Matrix} representing the exogenous matrix used to instrument the endogenous social network, if \code{unobservables} is non-\code{NULL}.  Row and column names must be specified and match the order of the observations in \code{data}.
 #' @param start.val an optional list containing the starting values for the estimations. Object names must match the names provided in \code{formula}. It is also required to specify the value of both the constant and the decay parameter(s).
 #' @param to_weight an optional vector of weights to be used in the fitting process to indicate that different observations have different variances. Should be \code{NULL} or a numeric vector. If non-\code{NULL}, weighted non-linear least squares (if \code{estimation = "NLLS"}) or weighted maximum likelihood  (if \code{estimation = "MLE"}) is estimated.
 #' @param time_fixed_effect an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.
-#' @param mle_controls a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator.
+#' @param ind_fixed_effect an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.
+#' @param mle_controls a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.
+#' @param kappa a normalization level with default equals 1 used in MLE estimation.
+#' @param delta Default is \code{NULL}. To be used when \code{estimation = "NLLS"}. It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be higher than zero and lower than the spectral radius of \code{G}. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.
 #' @return A list of two objects:
 #' \itemize{
 #' \item A list of estimates, each one setting the decay parameter to zero, and adding one of the \code{centralities} to the specification of \code{formula}. The last object adds to \code{formula} all the selected \code{centralities} and the decay parameter is set different from zero.
@@ -94,6 +96,7 @@
 #'                                           phi = 16.13035695))
 #' summary(horse_model_test)
 #' @import spatstat.utils
+#' @importFrom formula.tools lhs.vars
 #' @export
 horse_race <- function(
   formula = formula(),
@@ -109,12 +112,14 @@ horse_race <- function(
   estimation = c("NLLS","MLE"),
   endogeneity = FALSE,
   first_step = NULL,
-  data_first_step = NULL,
   exclusion_restriction = NULL,
   start.val = NULL,
   to_weight = NULL,
   time_fixed_effect = NULL,
-  mle_controls = NULL) {
+  ind_fixed_effect = NULL,
+  mle_controls = NULL,
+  kappa = NULL,
+  delta = NULL) {
 
   if (!is.null(time_fixed_effect)) {
     tt <- data[[time_fixed_effect]]
@@ -206,7 +211,11 @@ horse_race <- function(
 
     formula_fit <- formula
     regressors <- paste(termsinformula(formula_fit), collapse = " + ")
-    dependent <- as.character(formula_fit)[2]
+    if (!is.null(ind_fixed_effect)) {
+      regressors <- paste0(regressors, " + ", ind_fixed_effect)
+      data[, ind_fixed_effect] <- as.factor(data[, ind_fixed_effect])
+    }
+    dependent <- lhs.vars(formula_fit)
 
     if (!is.null(exclusion_restriction)) {
       first_step_list <- list()
@@ -258,11 +267,14 @@ horse_race <- function(
     hr <- net_dep(formula = formula_fit, data = data_fit, G = G, model = model,
                   estimation = estimation, hypothesis = "lim",
                   endogeneity = FALSE, correction = "heckman",
-                  first_step = NULL, z = NULL, data_first_step = NULL,
+                  first_step = NULL, z = NULL, formula_first_step = NULL,
                   exclusion_restriction = exclusion_restriction,
                   start.val = start.val, to_weight = to_weight,
                   time_fixed_effect = time_fixed_effect,
-                  mle_controls = mle_controls)
+                  mle_controls = mle_controls,
+                  ind_fixed_effect = ind_fixed_effect,
+                  kappa = kappa,
+                  delta = delta)
 
     if (!is.null(exclusion_restriction)) {
       second_step_list[[length(second_step_list) + 1]] <- hr[[1]]

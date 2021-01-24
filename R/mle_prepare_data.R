@@ -105,7 +105,7 @@ mle_prepare_data<- function(X, G, z, e, start.val, starting.values, model,
         tmp1 <- unlist(start.val)
       }
 
-      if (!is.null(mle_controls)) {
+      if (is.null(mle_controls)) {
         tmp2 <- tmp1 + 100
         tmp3 <- tmp1 - 100
         tmp2[names(tmp1) %in% "sigma"] <- 10

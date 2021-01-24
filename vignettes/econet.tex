@@ -2,6 +2,7 @@
 %\VignetteEngine{R.rsp::tex}
 \documentclass[nojss]{jss}
 %% -- LaTeX packages and custom commands ---------------------------------------
+
 \usepackage{thumbpdf,lmodern}
 \usepackage{framed}
 \usepackage{amsmath}
@@ -89,7 +90,7 @@ Model B studies the extent to which social connections influence the legislative
 
 Models A and B are not alternative ways to represent the same economic problem. Models A and B describe completely different social interactions: the first, a competitive game between two lobbyists; the second, a cooperative game between \textit{n} legislators.\footnote{The difference is not just in the interpretation. The models are formally different games in a game theoretic sense: the set of players are different, the strategy space is different, the payoffs are different.} Models A and B are therefore relevant to our discussion because they show how the similar centrality measure can emerge as relevant in a completely different context. Since the tools provided in \pkg{econet} can be used to estimate both generalities, these examples illustrate how \pkg{econet} can be useful in studying completely different social problems.
 
-Section~\ref{sec:alternative} also shortly discusses the popular network model of peer effects by \cite{Ballester+Armengol+Zenou:2006}. Interestingly, the prediction of this model is the same of that derived from Model B. This implies that the functions contained in \pkg{econet} to estimate Model B can also be used to test the predictions of the model by \cite{Ballester+Armengol+Zenou:2006}. The difference between model B and \cite{Ballester+Armengol+Zenou:2006} is in the way the strategic environment is modeled. In model B, the productivity of \textit{i} is affected by the productivity of the other socially connected players; in \cite{Ballester+Armengol+Zenou:2006}, it is assumed that the cost of effort of \textit{i} depends on the effort level of the other players. In \cite{Ballester+Armengol+Zenou:2006}, the actions (i.e. the levels of effort) are predicted to be equal to the Katz-Bonacich centralities; in model B, it is the outcomes that are predicted equal to the centralities. Model B is better suited for empirical analysis since we observe effectiveness (through measures of output), so we can use observed effectiveness to estimate centralities, while we do not observe effort directly, so we can't use it in an estimation. Models that have attempted to test the predictions of \cite{Ballester+Armengol+Zenou:2006} have approximated effort with output, but this approximation is not possible if other unobserved factors affect output. The model in \cite{Ballester+Armengol+Zenou:2006}, however is an important reference point because it is one of the first models to study these issues.The tools provided by \pkg{econet} are also useful in estimating the parameters of the model in \cite{Ballester+Armengol+Zenou:2006}.
+Section~\ref{sec:alternative} also shortly discusses the popular network model of peer effects by \cite{Ballester+Armengol+Zenou:2006}. Interestingly, the prediction of this model is the same of that derived from Model B. This implies that the functions contained in \pkg{econet} to estimate Model B can also be used to test the predictions of the model by \cite{Ballester+Armengol+Zenou:2006}. The difference between model B and \cite{Ballester+Armengol+Zenou:2006} is in the way the strategic environment is modeled. In model B, the productivity of \textit{i} is affected by the productivity of the other socially connected players; in \cite{Ballester+Armengol+Zenou:2006}, it is assumed that the cost of effort of \textit{i} depends on the effort level of the other players. In \cite{Ballester+Armengol+Zenou:2006}, the actions (i.e. the levels of effort) are predicted to be equal to the Katz-Bonacich centralities; in model B, it is the outcomes that are predicted equal to the centralities. Model B is better suited for empirical analysis as the effectiveness can often be observed and measured, but not effort. Models that have attempted to test the predictions of \cite{Ballester+Armengol+Zenou:2006} have approximated effort with output, but this approximation is not possible if other unobserved factors affect output. The model in \cite{Ballester+Armengol+Zenou:2006}, however is an important reference point because it is one of the first models to study these issues.The tools provided by \pkg{econet} are also useful in estimating the parameters of the model in \cite{Ballester+Armengol+Zenou:2006}.
 
 \subsection{Setup of model A}\label{sec:modelA}
 
@@ -314,10 +315,8 @@ different types of friends and thus different reference groups $\overline{\mathb
 endogenous and depends on her location in the network as well as the
 structure of the network.
 
-\textbf{Nash equilibrium}
-
 In this game where agents choose their effort level $y_{i,k}\geq 0$
-simultaneously, there exists a unique Nash equilibrium (see, e.g. \cite{Patacchini2012} given by:%
+simultaneously, there exists an unique Nash equilibrium (see, e.g. \cite{Patacchini2012} given by:%
 \begin{equation}
 \mathbf{y}_{\mathbf{r}, i,}^{\ast }=\phi \frac{1}{\bar g_{i}}\sum_{j=1}^{n_{k}}g_{ij}\mathbf{y}_{\mathbf{r}, j,}^{\ast
 }+\left( 1-\phi \right) \left( a_{r, i}+\eta _{r}+\varepsilon _{r, i}\right) 
@@ -362,8 +361,7 @@ We extend model~\ref{NLLS} by accounting for heterogeneity in network spillovers
 \begin{equation}
 y=\alpha \lbrack I-G(\phi I+\gamma \Lambda )]^{-1}1+X\mathbf{\beta }+\mathbf{\epsilon }   \tag{20 \code{het}}
 \label{BP_2}
-\end{equation}
-\setcounter{equation}{20}
+\end{equation}\setcounter{equation}{20}\noindent 
 where $\Lambda =I\otimes z$ is a matrix with the values in the vector $z$ on the diagonal, and all other values are 0. Matrix $I$ has dimension $n \times n$ and the vector $z$ has dimension has dimension $1\times n$. The vector $z$ represents a given characteristic of the agents. Consistently, the term $\gamma$ allows for the possibility that agents with different characteristics may be more or less susceptible to social spillovers.
 
 The reduced form of the first order necessary and sufficient condition for optimality in the behavioral model developed by BLP (see equation~\ref{E_01}), is: 
@@ -394,8 +392,7 @@ In addition, BLP also consider the possibility of heterogeneous links (rather th
 between groups. $G$ can thus be decomposed in two $n\cdot n$ matrices $G_{wit}$ and $G_{btw}$, with $G=G_{wit}+G_{btw}$. $G_{wit}$\ is a matrix that has the same top left and bottom right components as $G$ and it is zero otherwise, and $G_{btw}$ is a matrix that has the same bottom left and top right components as $G$ and it is zero otherwise. As a result, model ~\ref{BLP} becomes
 \begin{equation}
 y=(I-\phi _{1}G_{wit}-\phi _{2}G_{btw})^{-1}(\alpha +X\mathbf{\beta })+ \mathbf{\epsilon } \tag{25 \code{par}}  \label{BLP_4}
-\end{equation}
-\setcounter{equation}{25/}
+\end{equation}\setcounter{equation}{25}\noindent 
 where $\phi _{1}$ captures within-group spillovers, and $\phi _{2}$ between-group spillovers.
 The taxonomy of models outlined above shows that centrality measures should be calculated according to the most appropriate behavioral model describing the agents' behaviors and the requested level of heterogeneity of agents and network links. In BP and BLP we bring these theories to the data and find support for their predictions in different contexts.
 

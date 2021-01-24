@@ -69,15 +69,10 @@ check_entries <- function(env) {
     stop('z is missing')
   }
 
-  if (!is.null(first_step) & is.null(exclusion_restriction)) {
-    stop('exclusion_restriction is missing')
-  }
-
   if (is.na(sum(y + X + G)) |
      (!is.null(z) & is.na(sum(z))) |
      (!is.null(tt) & is.na(sum(tt))) |
      (!is.null(to_weight) & is.na(sum(to_weight))) |
-     (!is.null(data_first_step) & is.na(sum(data_first_step))) |
      (!is.null(start.val) & is.na(sum(Reduce("c",start.val)))) |
      (!is.null(exclusion_restriction) & is.na(sum(exclusion_restriction)))) {
     stop('net_dep does not know how to deal with missing values')
@@ -125,7 +120,8 @@ check_entries <- function(env) {
 
   if (endogeneity == FALSE) {
     parameters <- c("alpha", "phi", "gamma", "theta_0", "theta_1", "eta_0",
-                    "eta_1", "phi_within", "phi_between")
+                    "eta_1", "phi_within", "phi_between",
+                    "phi_within_0", "phi_within_1", "phi_between_01", "phi_between_10")
     if (
       (!is.null(start.val) & hypothesis == "lim" &
        sum(c("alpha", "phi") %in% names(start.val)) != 2 &
@@ -142,27 +138,80 @@ check_entries <- function(env) {
        sum(parameters %in% names(start.val)) != 3 ) |
       (!is.null(start.val) & hypothesis == "par" &
        sum(c("alpha", "phi_within", "phi_between") %in% names(start.val)) != 3 &
-       sum(parameters %in% names(start.val)) != 3)) {
+       sum(parameters %in% names(start.val)) != 3) |
+      (!is.null(start.val) & hypothesis == "par_split_with" &
+       sum(c("alpha", "phi_within_0", "phi_within_1", "phi_between") %in% names(start.val)) != 4 &
+       sum(parameters %in% names(start.val)) != 4) |
+      (!is.null(start.val) & hypothesis == "par_split_btw" &
+       sum(c("alpha", "phi_within", "phi_between_01", "phi_between_10") %in% names(start.val)) != 4 &
+       sum(parameters %in% names(start.val)) != 4) |
+      (!is.null(start.val) & hypothesis == "par_split_with_btw" &
+       sum(c("alpha", "phi_within_0", "phi_within_1", "phi_between_01", "phi_between_10") %in% names(start.val)) != 5 &
+       sum(parameters %in% names(start.val)) != 5)) {
       stop('Starting values are not correctly specified')
     }
 
     if ((hypothesis=="lim" & estimation == "NLLS" & !is.null(start.val) &
-         length(start.val) > (ncol(X)+2)) |
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X)+2)) |
        (hypothesis=="lim" & estimation == "MLE" & !is.null(start.val) &
-        length(start.val) > (ncol(X)+3))) {
+        is.null(ind_fixed_effect) & length(start.val) > (ncol(X)+3))) {
       stop('Starting values are not correctly specified')
     }
 
-    if ((hypothesis != "lim" & estimation == "NLLS" & !is.null(start.val) &
-        length(start.val) > (ncol(X) + 3)) |
-       (hypothesis != "lim" & estimation == "MLE" & !is.null(start.val) &
-        length(start.val) > (ncol(X) + 4))) {
+    if ((hypothesis=="lim" & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 2 + (n_fe - 1))) |
+        (hypothesis=="lim" & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 3 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 3)) |
+       (hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "MLE" & !is.null(start.val) &
+        is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 4))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 3 + (n_fe - 1))) |
+        (hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 4 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 4)) |
+        (hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 5))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 4 + (n_fe - 1))) |
+        (hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 5 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with_btw") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 5)) |
+        (hypothesis %in% c("par_split_with_btw") & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 6))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with_btw") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) -1) + 5 + (n_fe - 1))) |
+        (hypothesis %in% c("par_split_with_btw") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 6 + (n_fe - 1)))) {
       stop('Starting values are not correctly specified')
     }
 
   } else {
     parameters <- c("alpha", "phi", "gamma", "theta_0", "theta_1", "eta_0",
-                    "eta_1", "phi_within", "phi_between", "unobservables")
+                    "eta_1", "phi_within", "phi_between",
+                    "phi_within_0", "phi_within_1", "phi_between_01", "phi_between_10",
+                    "unobservables")
     if (
       (!is.null(start.val) & hypothesis == "lim" &
        sum(c("alpha", "phi") %in% names(start.val)) != 2 &
@@ -178,21 +227,72 @@ check_entries <- function(env) {
        sum(parameters %in% names(start.val)) != 4 ) |
       (!is.null(start.val) & hypothesis == "par" &
        sum(c("alpha", "phi_within", "phi_between") %in% names(start.val)) != 3 &
-       sum(parameters %in% names(start.val)) != 4)) {
+       sum(parameters %in% names(start.val)) != 4) |
+      (!is.null(start.val) & hypothesis == "par_split_with" &
+       sum(c("alpha", "phi_within_0", "phi_within_1", "phi_between") %in% names(start.val)) != 4 &
+       sum(parameters %in% names(start.val)) != 5) |
+      (!is.null(start.val) & hypothesis == "par_split_btw" &
+       sum(c("alpha", "phi_within", "phi_between_01", "phi_between_10") %in% names(start.val)) != 4 &
+       sum(parameters %in% names(start.val)) != 5) |
+      (!is.null(start.val) & hypothesis == "par_split_with_btw" &
+       sum(c("alpha", "phi_within_0", "phi_within_1", "phi_between_01", "phi_between_10") %in% names(start.val)) != 5 &
+       sum(parameters %in% names(start.val)) != 6)) {
       stop('Starting values are not correctly specified')
     }
 
     if ((hypothesis=="lim" & estimation == "NLLS" & !is.null(start.val) &
-         length(start.val) > (ncol(X) + 3)) |
-       (hypothesis=="lim" & estimation == "MLE" & !is.null(start.val) &
-        length(start.val) > (ncol(X) + 4))) {
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X)+3)) |
+        (hypothesis=="lim" & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X)+4))) {
       stop('Starting values are not correctly specified')
     }
 
-    if ((hypothesis != "lim" & estimation == "NLLS" & !is.null(start.val) &
-         length(start.val) > (ncol(X) + 4)) |
-       (hypothesis != "lim" & estimation == "MLE" & !is.null(start.val) &
-        length(start.val) > (ncol(X) + 5))) {
+    if ((hypothesis=="lim" & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 3 + (n_fe - 1))) |
+        (hypothesis=="lim" & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 4 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 4)) |
+        (hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 5))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 4 + (n_fe - 1))) |
+        (hypothesis %in% c("het", "het_l", "het_r", "par") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X)-1) + 5 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 5)) |
+        (hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 6))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 5 + (n_fe - 1))) |
+        (hypothesis %in% c("par_split_with", "par_split_btw") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 6 + (n_fe - 1)))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with_btw") & estimation == "NLLS" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 6)) |
+        (hypothesis %in% c("par_split_with_btw") & estimation == "MLE" & !is.null(start.val) &
+         is.null(ind_fixed_effect) & length(start.val) > (ncol(X) + 7))) {
+      stop('Starting values are not correctly specified')
+    }
+
+    if ((hypothesis %in% c("par_split_with_btw") & estimation == "NLLS" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) -1) + 6 + (n_fe - 1))) |
+        (hypothesis %in% c("par_split_with_btw") & estimation == "MLE" & !is.null(start.val) &
+         !is.null(ind_fixed_effect) & length(start.val) > ((ncol(X) - 1) + 7 + (n_fe - 1)))) {
       stop('Starting values are not correctly specified')
     }
 
@@ -204,6 +304,12 @@ check_entries <- function(env) {
 
   if (!is.null(mle_controls) & is.null(names(mle_controls))) {
     stop('mle_controls is not correctly specified (names must be provided)')
+  }
+
+  if (!is.null(delta)) {
+    if (delta < 0 | delta >= 1) {
+      stop('delta is not correctly specified')
+    }
   }
 
 }
