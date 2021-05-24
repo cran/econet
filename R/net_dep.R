@@ -15,7 +15,7 @@
 #' @param start.val an optional list containing the starting values for the estimations. Object names must match the names provided in \code{formula}. It is also required to specify the value of both the constant and the decay parameter(s). See details.
 #' @param to_weight an optional vector of weights to be used in the fitting process to indicate that different observations have different variances. Should be \code{NULL} or a numeric vector. If non-\code{NULL}, it can be used to fit a weighted non-linear least squares (\code{estimation = "NLLS"}).
 #' @param time_fixed_effect an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.
-#' @param ind_fixed_effect an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.
+#' @param ind_fixed_effect an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data. Observe that inclusion of individual fixed effects is in its beta version. When \code{estimation == "MLE"}, \code{net_dep} is guaranteed to work only if \code{hypothesis == "lim"}.
 #' @param mle_controls a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.
 #' @param kappa a normalization level with default equals 1 used in MLE estimation.
 #' @param delta Default is \code{NULL}. To be used when \code{estimation = "NLLS"}. It has to be a number between zero (included) and one (excluded). When used, \code{econet} performs a constrained NLLS estimation. In this case, the estimated peer effect parameter, taken in absolute value, is forced to be between the spectral radius of \code{G} and its opposite value. Specifically, \code{delta} is a penalizing factor, decreasing the goodness of fit of the NLLS estimation, when the peer effect parameter approaches one of the two bounds. Observe that very high values of \code{delta} may cause NLLS estimation not to converge.
@@ -515,6 +515,9 @@ net_dep <- function(formula = formula(),
     boundU <- set_second_step[[2]]
     boundL <- set_second_step[[3]]
     e <- set_second_step[[4]]
+    if (!is.null(ind_fixed_effect)) {
+      X <- X[, -1]
+    }
 
     if (endogeneity) {
       X[, "unobservables"] <- e[["unobservables"]]
@@ -524,7 +527,7 @@ net_dep <- function(formula = formula(),
       if (hypothesis == "lim") {
         second_step <- mle_compet_lim(y = y, X = X, G = G, z = z,
                                       starting.values = starting.values,
-                                      boundL = boundL, boundU = boundU)
+                                      boundL = boundL, boundU = boundU, ind_fixed_effect)
       } else if (hypothesis == "het") {
         second_step <- mle_compet_het(y = y, X = X, G = G, z = z,
                                       starting.values = starting.values,
@@ -536,7 +539,7 @@ net_dep <- function(formula = formula(),
       if (hypothesis == "lim") {
         second_step <- mle_compet_lim(y = y, X = X, G = G, z = z,
                                       starting.values = starting.values,
-                                      boundL = boundL, boundU = boundU)
+                                      boundL = boundL, boundU = boundU, ind_fixed_effect)
       } else if (hypothesis == "het_l") {
         second_step <- mle_het(y = y, X = X, G = G, z = z, side = "het_l",
                                starting.values = starting.values,

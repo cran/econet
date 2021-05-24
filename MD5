@@ -1,4 +1,4 @@
-ec8cf4a07b836344e7b3786fc91bbefd *DESCRIPTION
+42b845c865de0da13bef5c7964083709 *DESCRIPTION
 6e7afd9448306514ef55f87d0a3cb7ca *LICENSE
 a1dd20b92d129d8354d53fdfda8b2897 *NAMESPACE
 a4dd15aa122920f7a176a39958ac4438 *R/AIC.R
@@ -19,7 +19,7 @@ f75b23f43780d4a265ccfaa487788a38 *R/create_y_hat.R
 4ee8362ebcc9dfe58ec37c507d9ec974 *R/dep_mat.R
 030e6e239372997ffc7b622487b441b5 *R/formula.R
 6896379a2fd3bcf2bc8948a6b411b3d3 *R/globals.R
-77a485f4bc23370f0a2a0b7ee2c0047d *R/horse_race.R
+6633bea8105066cf7f03ec43c1c3262a *R/horse_race.R
 64daafe1a34d210c092fe1c127958817 *R/ifdummy.R
 7b59a628f1acce97f42c9b0d6bf90d3b *R/ifdummy1.R
 7f92909536be748f419eb3ef04fb171b *R/ll_compet_het_left.R
@@ -35,14 +35,14 @@ ca3b790dfa134fa0c1db454ff73b8399 *R/mat_to_el.R
 897a26b76c6ffb1529156331b9351902 *R/mle2.R
 2fb3b63b6426b94abae6359a7a39a27a *R/mle3.R
 27d50935dfcb9c72e3b5798ae55c395e *R/mle_compet_het.R
-8473bdbcb825aa62c70715a224cc93c3 *R/mle_compet_lim.R
+f4a77bd96f681ea890b37bc2f96c2395 *R/mle_compet_lim.R
 e111c208d2634d9fbc9ac7d5b0797c16 *R/mle_het.R
 ba2e5eb869e71f8c5b5ce123e415471c *R/mle_party.R
 d69c2e983ce3c124ca3ac4b99d450083 *R/mle_party_split_btw.R
 9e1f308a2b9ff8b596caa69db3256427 *R/mle_party_split_with.R
 7d9df6ffaf7008d0247e0677b6b06b8b *R/mle_party_split_with_btw.R
-dfae90adf4d9f53583b4a9a434758235 *R/mle_prepare_data.R
-06071d24e8b72fd621ad03cbc0b7adc7 *R/net_dep.R
+ce1ce4117c7f177452838a91eb47da83 *R/mle_prepare_data.R
+3cebe48cfdba62731f2b04085f85bfa2 *R/net_dep.R
 a5606fa945818a9dac0472c076769d90 *R/nls_constrained.R
 17b65fe8259fc3d63458ce7cc90a7544 *R/nls_prepare_data.R
 a76e33d69c49b6cbf6ed632681d724a9 *R/par_dep.R
@@ -70,7 +70,7 @@ e9998ca69da9f1e43468c63c86accbcc *R/try_boot.R
 fe393b94253b2f0f23975e2fabb078f5 *R/vcov.R
 4467613737584227a3533c61272f54af *R/vec_to_mat.R
 f5048f29bb8e8aeb9e3e18ddc8819bbc *README.md
-5fced5f7c665f8a8a7515db37f489685 *build/vignette.rds
+6b8d46cd7424f95faf4f5c48020d00a4 *build/vignette.rds
 75692ec5cfacae3449f668832d029695 *data/G_alumni_111.rda
 6f21debd98516f42459c8cf423e3eaf9 *data/G_cosponsor_111.rda
 01f189f4a57b330d541176836e92b3e9 *data/G_model_A_test.rda
@@ -78,7 +78,7 @@ f5048f29bb8e8aeb9e3e18ddc8819bbc *README.md
 04889c7fcf9c5321b03bd6eb01239887 *data/a_db_alumni.rda
 1729d97e249634d8e6ee0fbfadc4c0ed *data/db_alumni_test.rda
 692234b2f4204fc7b707fb5a821f8c8d *data/db_cosponsor.rda
-55905d559018a9f0d196518124708493 *inst/doc/econet.pdf
+d66839c3bc6e3c83789ac38f7b3d1f00 *inst/doc/econet.pdf
 d41cba1f3b2697e10f059177ec4e2d21 *man/G_alumni_111.Rd
 0a9325ac6b1619c50546d532b0ab6fe5 *man/G_cosponsor_111.Rd
 643c26b341e9236737bfa3d481ce1292 *man/G_model_A_test.Rd
@@ -88,7 +88,7 @@ bd420717e3bf0c2c4ce629b1f52b393a *man/boot.Rd
 42e844e013936bb060ec32155c8448be *man/db_alumni_test.Rd
 c0cbe911a34d66d2c9f0774c7958ba73 *man/db_cosponsor.Rd
 3b4cb98c78f18d20b673d65f12c9f38b *man/horse_race.Rd
-eafd4652a0777e46a646de0ea8bf1f48 *man/net_dep.Rd
+208ba0f609d19b71b4690d4ddc446b0f *man/net_dep.Rd
 788204132af28528d370fd1ee742fc62 *man/quantify.Rd
 ee9539108fc2f4b30cafca5aa8b55167 *vignettes/Figure1.png
 49376cc83d347eb8ed071219aa26236d *vignettes/econet.tex

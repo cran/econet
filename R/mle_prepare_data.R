@@ -25,7 +25,7 @@ mle_prepare_data<- function(X, G, z, e, start.val, starting.values, model,
     if (correction == "heckman") {
       X <-data.frame(X, unobservables = e[["unobservables"]])
       if (is.null(start.val)) {
-        starting.values[["unobservables"]] <- 0.01
+        starting.values[["beta_unobservables"]] <- 0.01
       }
     }
   }

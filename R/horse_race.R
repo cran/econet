@@ -279,8 +279,6 @@ horse_race <- function(
     if (!is.null(exclusion_restriction)) {
       second_step_list[[length(second_step_list) + 1]] <- hr[[1]]
       names(second_step_list) <- c(centralities, "parameter.dependent")
-      first_step_list[[length(first_step_list) + 1]] <- first_step
-      names(first_step_list) <- c(first_step_list, "parameter.dependent")
       second_step_cent_mes <- data.frame(second_step_cent_mes,
                                          "parameter.dependent" = hr[[2]])
       res <- list(second_step = second_step_list,

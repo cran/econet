@@ -58,7 +58,7 @@ net_dep(
 
 \item{time_fixed_effect}{an optional string. It indicates the name of the time index used in formula. It is used for models with longitudinal data.}
 
-\item{ind_fixed_effect}{an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data.}
+\item{ind_fixed_effect}{an optional string. Default is \code{NULL}. It indicates the name of the individual index contained in the data. If provided, individual fixed effects are automatically added to the \code{formula} of the main equation. If \code{endogeneity = TRUE}, the field \code{first_step} is overridden, and automatically set equal to \code{"fe"}. It is used for models with longitudinal data. Observe that inclusion of individual fixed effects is in its beta version. When \code{estimation == "MLE"}, \code{net_dep} is guaranteed to work only if \code{hypothesis == "lim"}.}
 
 \item{mle_controls}{a list allowing the user to set upper and lower bounds for control variables in MLE estimation and the variance for the ML estimator. See details.}
 
