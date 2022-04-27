@@ -17,7 +17,8 @@
 
   }
 
-  if (class(x) == "nls" | class(x) == "lm") {
+  if (inherits(x, "nls") |
+      inherits(x, "lm")) {
     res <- logLik(x)
   } else {
     res <- bbmle::logLik(x)
@@ -44,8 +45,8 @@
 
   }
 
-  if (class(x) == "nls" |
-      class(x) == "lm") {
+  if (inherits(x, "nls") |
+      inherits(x, "lm")) {
     res <- logLik(x)
   } else {
     res <- bbmle::logLik(x)

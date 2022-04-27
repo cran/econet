@@ -23,7 +23,8 @@
 
     }
 
-    if (class(x) == "nls" | class(x) == "lm") {
+    if (inherits(x, "nls") |
+        inherits(x, "lm")) {
       res <- vcov(x, ...)
     } else {
       res <- bbmle::vcov(x, ...)

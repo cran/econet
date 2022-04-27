@@ -11,7 +11,7 @@
 #' @noRd
 parameter_dependent_centrality <- function(second_step, hypothesis, I, G, e) {
 
-  if(class(second_step) == "nls") {
+  if(inherits(second_step, "nls")) {
     coef_second_step <- coef(second_step)
   } else {
     coef_second_step <- second_step@coef

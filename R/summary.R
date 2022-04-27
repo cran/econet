@@ -27,8 +27,8 @@
       aic <- AIC(object, centrality)
       loglik <- logLik(object, centrality)
 
-      if( class(main_equation) == "nls" |
-          class(main_equation) == "lm" ) {
+      if( inherits(main_equation, "nls") |
+          inherits(main_equation, "lm") ) {
 
         coefficients <- summary(main_equation)$coefficients
 

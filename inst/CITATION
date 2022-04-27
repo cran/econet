@@ -1,0 +1,23 @@
+bibentry(bibtype = "Article",
+  title        = "{econet}: An {R} Package for Parameter-Dependent Network Centrality Measures",
+  author       = c(person(given = "Marco",
+                          family = "Battaglini",
+                          email = "battaglini@cornell.edu"),
+                   person(given = c("Valerio", "Leone"),
+                          family = "Sciabolazza",
+                          email = "valerio.leonesciabolazza@parthenope.it"),
+                   person(given = "Eleonora",
+                          family = "Patacchini",
+                          email = "ep454@cornell.edu"),
+                   person(given = "Sida",
+                          family = "Peng",
+                          email = "sidpeng@microsoft.com")),
+  journal      = "Journal of Statistical Software",
+  year         = "2022",
+  volume       = "102",
+  number       = "8",
+  pages        = "1--30",
+  doi          = "10.18637/jss.v102.i08",
+  header       = "To cite econet in publications use:"
+)
+

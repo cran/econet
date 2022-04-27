@@ -21,7 +21,7 @@
 
     }
 
-    if (class(x) == "nls") {
+    if (inherits(x, "nls")) {
       if (!is.null(x$m$mformula)) {
         res <- formula(x$m$mformula)
       } else {

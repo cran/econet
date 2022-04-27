@@ -20,7 +20,7 @@ quantify: quantification of marginal effects in linear-in-means models.
 }
 \details{
 \code{quantify} returns marginal effects for \code{net_dep} objects when \code{model = "model_B"} and \code{hypothesis = "lim"}.
-For additional details, see the vignette
+For additional details, see the vignette (doi:10.18637/jss.v102.i08).
 }
 \examples{
 \donttest{

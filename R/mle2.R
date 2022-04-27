@@ -301,7 +301,7 @@ function (minuslogl, start, method, optimizer, fixed = NULL,
       else {
         tmphess <- try(solve(oout$hessian, silent = TRUE))
       }
-      if (class(tmphess) == "try-error") {
+      if (inherits(tmphess, "try-error")) {
         tvcov <- matrix(NA, length(coef), length(coef))
         warning("couldn't invert Hessian")
       }

@@ -47,7 +47,7 @@ a numeric vector containing bootstrapped standard errors  (see Anselin, 1990). I
 boot: Bootstrap residuals with cross-sectional dependence
 }
 \details{
-For additional details, see the vignette.
+For additional details, see the vignette (doi:10.18637/jss.v102.i08).
 Warning: This function is available only when \code{net_dep} is run with \code{estimation == "NLLS"}
 }
 \examples{

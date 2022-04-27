@@ -10,8 +10,8 @@
 
   main_equation <- x[[1]]
 
-  if( class(main_equation) == "nls" |
-      class(main_equation) == "lm" ) {
+  if( inherits(main_equation, "nls") |
+      inherits(main_equation, "lm") ) {
 
     print.default(format(coef(main_equation), digits = digits), print.gap = 2L,
                   quote = FALSE)
@@ -79,8 +79,8 @@
       cat(paste("Main Equation: ", paste(formula[2], formula[3], sep = ' ~ ')))
       cat("\n")
 
-      if( class(x) == "nls" |
-          class(x) == "lm" ) {
+      if( inherits(x, "nls") |
+          inherits(x, "lm") ) {
 
         printCoefmat(coefficients, digits = digits, signif.stars = signif.stars,
                      na.print = "NA", ...)

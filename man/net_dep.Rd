@@ -111,7 +111,7 @@ The starting value referring to the intercept (constant) must be labelled as "al
 The interaction term when \code{hypothesis="het"} must be labelled  \code{"gamma"}. The label to be used for unobservables when \code{endogeneity = TRUE} is \code{"unobservables"}. When \code{estimation = "MLE"}, it is required to set also the starting value for the variance of the ML estimator. This should be labelled as "sigma". \cr
 The argument \code{mle_controls} takes a list of two objects. The first is a named numeric vector used to set upper and lower bounds for control variables. The second object is a vector used to set upper (first value) and lower (second value) bounds for the variance of the Maximum Likelihood estimator.\cr
 Names in \code{mle_controls} must be equal to those used in \code{start.val}.
-For additional details, see the vignette.
+For additional details, see the vignette (doi:10.18637/jss.v102.i08).
 }
 \examples{
 \donttest{

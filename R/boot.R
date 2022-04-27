@@ -23,7 +23,7 @@
 #' @param ... additional parameters
 #' @return a numeric vector containing bootstrapped standard errors  (see Anselin, 1990). If the procedure is not feasible, it returns a vector of NAs.
 #' @details
-#' For additional details, see the vignette.
+#' For additional details, see the vignette (doi:10.18637/jss.v102.i08).
 #' Warning: This function is available only when \code{net_dep} is run with \code{estimation == "NLLS"}
 #' @references Anselin, L., 1990, "Some robust approach to testing and estimation in spatial econometrics", Regional Science and Urban Economics, 20, 141-163.
 #' @seealso \code{\link{net_dep}}
@@ -76,9 +76,9 @@
 "boot.econet" <- function(object, hypothesis = c("lim", "het", "het_l", "het_r", "par", "par_split_with", "par_split_btw", "par_split_with_btw"),
                  group = NULL, niter, weights = FALSE, delta = NULL, na.rm = FALSE, parallel = FALSE, cl, ...) {
 
-  if (class(object) == "econet") {
+  if (inherits(object, "econet")) {
   object <- object[[1]]
-  if (class(object) == "nls") {
+  if (inherits(object, "nls")) {
 
     if (parallel == FALSE & is.null(delta)) {
     res<- list()

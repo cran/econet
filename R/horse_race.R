@@ -40,7 +40,7 @@
 #' \item \code{first_step = "coauthor"} adds to the \code{standard} model, the number of shared connections between \emph{i} and \emph{j}, as in Graham (2015).
 #' \item \code{first_step = "degree"} adds to the \code{standard} model, the difference in the degree centrality of \emph{i} and \emph{j}.
 #' }
-#' For additional details, see the vignette.
+#' For additional details, see the vignette (doi:10.18637/jss.v102.i08).
 #' @references
 #' Battaglini M., V. Leone Sciabolazza, E. Patacchini, S. Peng (2020), "Econet: An R package for the Estimation of parameter-dependent centrality measures", Mimeo. \cr
 #' @seealso \code{\link{net_dep}}
