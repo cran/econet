@@ -1,0 +1,1784 @@
+%\VignetteIndexEntry{econet}
+%\VignetteEngine{R.rsp::tex}
+\documentclass[nojss]{jss}
+\usepackage{amsmath,array,multirow,bm,amssymb,amsthm,orcidlink,thumbpdf,lmodern}
+\graphicspath{{Figures/}}
+
+\newtheorem{definition}{Definition}
+
+\author{Marco Battaglini~\orcidlink{0000-0001-9690-0721}\\Cornell University, EIEF, NBER
+  \And Valerio Leone Sciabolazza~\orcidlink{0000-0003-2537-3084}\\Sapienza University of Rome, CEIS
+  \AND Eleonora Patacchini~\orcidlink{0000-0002-3510-2969}\\ Cornell University, EIEF
+  \And Sida Peng\\Microsoft Research}
+\Plainauthor{Marco Battaglini, Valerio Leone Sciabolazza, Eleonora Patacchini, Sida Peng}
+
+\title{\pkg{econet}: An \proglang{R}~Package for Parameter-Dependent Network Centrality Measures}
+\Plaintitle{\pkg{econet}: An R Package for Parameter-Dependent Network Centrality Measures}
+\Shorttitle{\pkg{econet}: Parameter-Dependent Network Centrality Measures in \proglang{R}}
+
+\Abstract{
+  The \proglang{R}~package \pkg{econet} provides methods for
+  estimating parameter-dependent network centrality measures with
+  linear-in-means models.  Both nonlinear least squares and maximum likelihood
+  estimators are implemented.  The methods allow for both link and node
+  heterogeneity in network effects, endogenous network formation and the
+  presence of unconnected nodes.  The routines also compare the explanatory
+  power of parameter-dependent network centrality measures with those of
+  standard measures of network centrality.  Benefits and features of the
+  \pkg{econet} package are illustrated using data from
+  \cite{Battaglini+Patacchini:2018} and
+  \cite{Battaglini+Sciabolazza+Patacchini:2020}.
+}
+
+\Keywords{network econometrics, heterogeneous peer effects, endogenous network formation, least-square estimators, maximum likelihood estimators, \proglang{R}}
+\Plainkeywords{network econometrics, heterogeneous peer effects, endogenous network formation, least-square estimators, maximum likelihood estimators, R}
+
+\Volume{102}
+\Issue{8}
+\Month{April}
+\Year{2022}
+\Submitdate{2018-07-05}
+\Acceptdate{2021-08-17}
+\DOI{10.18637/jss.v102.i08}
+
+\Address{
+  Marco Battaglini\\
+  Department of Economics\\
+  Cornell University\\
+  Ithaca, NY 14850, United States of America\\
+  \emph{and} EIEF \emph{and} NBER\\
+  E-mail: \email{battaglini@cornell.edu}\\
+
+  Valerio Leone Sciabolazza\\
+  Department of Economics and Law\\
+  Sapienza University of Rome\\
+  Rome, 00161, Italy\\
+  \emph{and} CEIS\\
+  E-mail: \email{valerio.leonesciabolazza@uniroma1.it}
+
+  Eleonora Patacchini\\
+  Department of Economics\\
+  Cornell University\\
+  Ithaca, NY 14850, United States of America\\
+  \emph{and} EIEF\\
+  E-mail: \email{ep454@cornell.edu}\\
+
+  Sida Peng\\
+  Office of Chief Economist\\
+  Microsoft Research\\
+  Redmond, WA 14865, United States of America\\
+  E-mail: \email{sidpeng@microsoft.com}
+}
+
+\begin{document}
+
+\vspace*{-0.5cm}
+
+\section{Introduction} \label{sec:intro}
+
+Since its inception, network analysis has mostly focused on the discovery of
+topological properties of network structures.  This has changed dramatically
+over the past ten years.  An emerging literature in economics has shown that
+network centrality measures, which were traditionally viewed as descriptive,
+have an interpretation within equilibrium models of behavior.  The pioneer
+paper is \cite{Ballester+Armengol+Zenou:2006}.  This paper considers a model
+in which an agent's effort is triggered by the effort of his/her socially
+connected peers.  It shows that the equilibrium  levels of effort are linear
+functions of the agent's position in the network as measured by an indicator
+within the family of Katz-Bonacich centralities.  Katz-Bonacich centralities
+\citep{Katz:1953,Bonacich:1972,Bonacich:1987} are network centrality
+measures that count all nodes that can be reached through a direct or
+indirect path, penalizing in different ways the contributions of distant
+nodes in determining a given node's centrality.  The discount factor is
+captured by a parameter, thus making the measures of centrality
+parameter-dependent.  The sociological literature has been treating this
+parameter as a nuisance parameter, and arbitrarily setting it to any value
+smaller than one.  However, the contribution of
+\cite{Ballester+Armengol+Zenou:2006} is to show that this parameter captures
+the strength of peer effects or social interactions that stem from the
+aggregation of dyadic peer influences.  More specifically, the empirical
+counterpart of the \cite{Ballester+Armengol+Zenou:2006} equilibrium
+condition is a linear model of social interactions, where the individual
+levels of effort are linear functions of the levels of effort of the
+connected agents.  The parameter capturing this influence is then used to
+measure the individual's importance in the network.  Since then, a
+burgeoning empirical literature has used the linear-in-means model to prove
+that peer effects and the individual position in the social network play an
+important role in explaining many social and economic outcomes, including
+consumer behavior, voting patterns, job search, information diffusion,
+innovation adoption, international trade and risk sharing \citep[see
+e.g.,][for recent
+reviews]{An:2011,An:2015a,Jackson+Rogers+Zenou:2017,Hsieh:2020,Zenou:2016}.
+
+Very recently \cite{Battaglini+Patacchini:2018} present a new theory of
+competitive vote-buying to study how interest groups allocate campaign
+contributions when legislators care about the behavior of other legislators
+to whom they are socially connected.  The model provides an alternative
+microfoundation for network measures within the family of Katz-Bonacich
+centralities.  This theory predicts that, in equilibrium, campaign
+contributions are proportional to a parameter-dependent measure of network
+centrality, similar to the one proposed by
+\cite{Ballester+Armengol+Zenou:2006}.  While
+\cite{Ballester+Armengol+Zenou:2006} is a purely theoretical paper,
+\cite{Battaglini+Patacchini:2018} test the theory with data from five recent
+United States (US) Congresses.  In doing so, it confronts a variety of empirical
+challenges.  For example, the theories described above show the importance
+of combining the information on network centrality with additional
+information on characteristics of the agents, since these characteristics
+can magnify or reduce the role played by a central agent.  Moreover, the
+theories provide a framework to study the role of network endogeneity.  In
+fact, when agents are strategic in choosing their peers, and omitted
+variables (such as social skills) drive both agent's behavior and social
+connectedness, the estimation of the peer effects parameter might be flawed
+\citep{Manski:1993}.\footnote{See also \cite{An:2015a} and
+\cite{VanderWeele+An:2013} for a discussion on the difficulties in studying
+peer effects.} \cite{Battaglini+Sciabolazza+Patacchini:2020} derive a model
+to control for network endogeneity allowing for a two-stage correction \`{a}
+la Heckman \citep{Heckman:1979} and demonstrate the relevance of alumni
+connections in shaping politicians' legislative effectiveness.  The common
+trait between all these theoretical models is that they establish a link
+between observable outcomes associated to a network node (for example,
+educational attainments as proxies of effort levels in
+\cite{Ballester+Armengol+Zenou:2006}; the money received by politicians in
+\cite{Battaglini+Patacchini:2018}; the levels of legislative effectiveness
+in \cite{Battaglini+Sciabolazza+Patacchini:2020}) and the respective
+centrality of the node.  This theoretical link can be used to estimate the
+parameter in the centrality measure using the observable outcomes.  This is
+useful because, for example, it allows to test for network effects or to
+acquire a deeper knowledge of the topological features of the respective
+networks.
+
+The routines contained in the package \pkg{econet} \citep{econet} for \proglang{R}
+\citep{R} allow for implementation of a number of variations of the
+linear-in-means model to obtain alternative centrality measures within the
+family of Katz-Bonacich centrality.  Both nonlinear least squares (NLLS) and
+maximum likelihood (ML) estimators are provided.  Several methods for
+dealing with the identification of network effects are implemented. 
+Moreover, the \pkg{econet} package allows for comparison of the explanatory
+power of parameter-dependent network centrality measures with those of
+standard measures of network centrality \citep{Wasserman+Faust:1994}.  As a
+result, \pkg{econet} expands the large set of tools available to
+\proglang{R} users interested in network analysis.  Specifically, it has at
+least four merits.  First, it complements the \proglang{R}~packages
+implementing traditional individual-level centrality measures for binary
+networks, \pkg{igraph} \citep{igraph} and \pkg{sna} \citep{sna}, and
+weighted networks, \pkg{tnet} \citep{tnet}, and group-level centrality
+measures for both binary and weighted networks, \pkg{keyplayer}
+\citep{An+Liu:2016}, by introducing new eigensolutions-based
+techniques to rank individual agents' centrality.  Second, whereas previous
+packages, such as \pkg{btergm} \citep{btergm}, \pkg{hergm} \citep{hergm},
+the \pkg{statnet} suite \citep{statnet}, and \pkg{xergm} \citep{xergm},
+created environments for modeling the statistical processes underlying
+network formation, \pkg{econet} provides the first framework to investigate
+the socio-economic processes operating on networks (i.e.,~peer effects). 
+Third, it completes the collection of functions for modeling spatial
+dependence in cross-sectional data provided by \pkg{spdep} \citep{spdep} and
+\pkg{splm} \citep{splm}, by allowing the users to: i) consider the presence
+of unconnected nodes, and ii) address network endogeneity.  Finally, it
+equips the \proglang{R} archive with routines still unavailable in other
+commonly used software for the investigation of relational data, such as
+\proglang{MATLAB} \citep{MATLAB}, \proglang{Pajek} \citep{Batagelj:2003},
+\proglang{Python} \citep{Python} and \proglang{Stata} \citep{Stata}.  The
+example we use to showcase the functionality of our \proglang{R}~package is
+taken from \cite{Battaglini+Patacchini:2018} and
+\cite{Battaglini+Sciabolazza+Patacchini:2020}.  The \proglang{R}~package
+\pkg{econet} \citep{econet} is available from the Comprehensive \proglang{R} Archive Network (CRAN) at
+\url{https://CRAN.R-project.org/package=econet}
+
+The rest of the paper is organized as follows.  Section~\ref{sec:theory}
+briefly reviews the theoretical background of the different approaches used
+to model the socio-economic processes operating on the network. 
+Section~\ref{sec:models} discusses the key elements for the estimation of
+parameter-dependent centralities, and presents a general taxonomy of the
+models implemented by the \proglang{R}~package \pkg{econet}. 
+Section~\ref{sec:endogeneity} lays out various models and methods to deal
+with network endogeneity.  Section~\ref{sec:econet} demonstrates the use of
+the main functions of the package \pkg{econet} to determine agent's
+centrality with examples.  Section~\ref{sec:conclusion} concludes.
+
+%% -- Manuscript 
+\section{Microeconomic foundation} \label{sec:theory}
+
+This section provides a theoretical background for the network models of
+peer effects implemented by the \proglang{R}~package \pkg{econet}.  Many
+network centrality measures have been introduced in the literature, each
+capturing different aspects of network topology.  Which is the correct way
+to measure how central is an agent in a network?  In this section we
+describe three economic models that derive conditions under which the
+Katz-Bonacich centralities that can be estimated using econet are the
+correct measures of an agent centralities.  The aim is to acquaint the
+researcher interested in working with \pkg{econet} of the different
+theoretical premises of these models, so that he/she can choose the model
+and the relative \pkg{econet} functions most appropriate for conducting
+his/her investigation.
+
+Model A describes the competition between two or more lobbyists who
+distribute monetary contributions among $n$ legislators to influence
+their votes.  Each lobbyist aims at maximizing the number of legislators
+that vote for his/her own preferred policy option.  Two legislators are
+socially connected if they derive utility from voting in the same way.  The
+model provides conditions under which, in the unique Nash equilibrium of the
+game, the money promised to legislator $i$ is proportional to the
+Katz-Bonacich centrality of $i$.  The model therefore provides a
+clear economic interpretation to the Katz-Bonacich centrality and
+illustrates it relevance in this context.  This model was first presented in
+\cite{Battaglini+Patacchini:2018}.
+
+Model B studies the extent to which social connections influence the
+legislative effectiveness of members of the US Congress.  By legislative
+effectiveness we mean the ability of a legislator to pass legislation.  In
+this model, the effectiveness in passing legislation of Congress member
+$i$ is described by a ``production function'' in which the inputs are
+the Congress member $i$'s effort and the effectiveness of all other
+socially connected Congress members, each weighted by the strength of their
+social link with $i$.  To determine the optimal level of effort, a
+legislator needs to predict the equilibrium effectiveness of all the
+socially linked Congress members, who in turn need to do the same in a Nash
+equilibrium.  Here too, the model provides conditions under which the
+effectiveness of a Congress member in equilibrium is proportional to a
+weighted version of the Katz-Bonacich centrality of the legislator, in which
+the weights are a specific function of the legislator's characteristics. 
+This model was first presented in
+\cite{Battaglini+Sciabolazza+Patacchini:2020}.
+
+Models A and B are not alternative ways to represent the same economic
+problem.  Models A and B describe completely different social interactions:
+the first, a competitive game between two lobbyists; the second, a
+cooperative game between $n$ legislators.\footnote{The difference is
+not just in the interpretation.  The models are formally different games in
+a game theoretic sense: the set of players are different, the strategy space
+is different, the payoffs are different.} Models A and B are therefore
+relevant to our discussion because they show how the similar centrality
+measure can emerge as relevant in a completely different context.  Since the
+tools provided in \pkg{econet} can be used to estimate both generalities,
+these examples illustrate how \pkg{econet} can be useful in studying
+completely different social problems.
+
+Section~\ref{sec:alternative} also shortly discusses the popular network
+model of peer effects by \cite{Ballester+Armengol+Zenou:2006}. 
+Interestingly, the prediction of this model is the same of that derived from
+Model B.  This implies that the functions contained in \pkg{econet} to
+estimate Model B can also be used to test the predictions of the model by
+\cite{Ballester+Armengol+Zenou:2006}.  The difference between model B and
+\cite{Ballester+Armengol+Zenou:2006} is in the way the strategic environment
+is modeled.  In model B, the productivity of $i$ is affected by the
+productivity of the other socially connected players; in
+\cite{Ballester+Armengol+Zenou:2006}, it is assumed that the cost of effort
+of $i$ depends on the effort level of the other players.  In
+\cite{Ballester+Armengol+Zenou:2006}, the actions (i.e.,~the levels of
+effort) are predicted to be equal to the Katz-Bonacich centralities; in
+model B, it is the outcomes that are predicted equal to the centralities. 
+Model B is better suited for empirical analysis as the effectiveness can
+often be observed and measured, but not effort.  Models that have attempted
+to test the predictions of \cite{Ballester+Armengol+Zenou:2006} have
+approximated effort with output, but this approximation is not possible if
+other unobserved factors affect output.  The model in
+\cite{Ballester+Armengol+Zenou:2006}, however is an important reference
+point because it is one of the first models to study these issues. The tools
+provided by \pkg{econet} are also useful in estimating the parameters of the
+model in \cite{Ballester+Armengol+Zenou:2006}.
+
+\subsection{Setup of model A}\label{sec:modelA}
+
+\cite*{Battaglini+Patacchini:2018}, BP henceforth, consider a model in which
+a legislature with n members chooses between one of two alternatives: a new
+policy, denoted by $A$, and a status quo policy, denoted by $B$.\footnote{We
+present here a simplified version of the model in BP for brevity.  We refer
+to the original paper for the more general version.} Legislator $i$'s
+utility of voting for policy $p$, denoted by $U^{i}({\bf x}(p))$, is:
+%
+\begin{equation}
+U^{i}({\bf x}(p))=\omega \left( s^{i}(p)\right) +\phi
+\sum_{j}g_{i,j}x_{j}(p)+\varepsilon _{p}^{i}  \label{U1}
+\end{equation}%
+%
+The first term in Equation~\ref{U1} is the utility of the interest groups'
+contributions: $s^{i}(p)$ is the contribution pledged in exchange for a vote
+for $p$, and $\omega \left( s\right) $ is the utility that legislator $i$'s
+receives from a contribution $s$.  The function $\omega (\cdot )$ is
+increasing, concave and differentiable with $\lim_{s\rightarrow 0}\omega
+^{\prime }(s)=\infty $, $\lim_{s\rightarrow \infty }\omega ^{\prime }(s)=0$. 
+The second term in Equation~\ref{U1} describes the social interaction effects.  The
+social network is described by a $n\times n$ matrix $G$ with generic element
+$g_{i,j}>0$, $x_{j}(p)$ is an indicator function equal to one if legislator
+$j$ chooses $p$ and zero otherwise, and $g_{i,j}$ measures the strength of
+the social influence of legislator $j$ on legislator $i$.  The final term in
+Equation~\ref{U1} represents other exogenous factors that may affect $i$'s
+preference for or aversion to voting for $p$.  The terms are normalized so
+that $\varepsilon _{A}^{i}=\varepsilon ^{i}$, where $\varepsilon ^{i}$ can
+be positive or negative, and $\varepsilon _{B}^{i}$ is set at
+zero.\footnote{Obviously, it is natural to assume that the legislators care
+about the outcome of the vote.  This effect of their vote is proportional to
+the probability of being pivotal: that is, the case in which $A$ and $B$
+votes are tied, or one of them is one vote below the other.  The exact
+pivotal probabilities are computed and incorporated in the legislators'
+expected utilities in the analysis in BP.  Here we omit these terms for
+simplicity, since in any case they are very small in an election with
+hundreds of voters.}
+
+Two interest groups, also denoted $A$ and $B$, attempt to influence the
+policy outcome.  Interest group $A$ is interested in persuading as many
+legislators as possible to chose policy $A$; interest group $B$, instead, is
+interested in persuading the legislators to choose policy $B$.  Each
+interest group is endowed with a budget $W$ and promises a contingent
+payment to each legislator that follows its recommendation.  Specifically,
+interest group $A$ promises a vector of payments ${\bf
+s}_{A}=(s_{A}^{1},\dots, s_{A}^{n})$ to the legislators, where $s_{A}^{i}$ is
+the payment received by legislator $i$ if he chooses $A$; similarly,
+interest group $B$ promises a vector of payments ${\bf
+s}_{B}=(s_{B}^{1},\dots,s_{B}^{n}) $ to the legislators, where $s_{B}^{i}$ is
+the payment received by legislator $i$ if he votes for $B$.
+
+Legislator $i$ is willing to vote for $A$ if and only if $E\left[
+U_{B}^{i}(x)-U_{A}^{i}(x)\right] \leq 0$.  It is assumed that the interest
+groups do not know with certainty the legislators' preferences, and so are
+unable to perfectly forecast how payments affect their voting behavior: so
+$\varepsilon ^{i}$ is assumed to be an independent, uniformly distributed
+variable with mean zero and density $\Psi >0$, whose realization is observed
+only by $i$.  Observing that the probability that legislator $i$ votes for
+$A$ is $\varphi _{i}=\E(x_{i}(A))$, we therefore have that $i$ votes for $A$
+only if:
+%
+\begin{equation}
+\varepsilon^{i}\leq \omega (s_{A}^{i})-\omega (s_{B}^{i})+\phi
+\sum\nolimits_{j}g_{i,j}\left( 2\varphi _{j}-1\right) ,  \label{p1}
+\end{equation}%
+%
+From Equation~\ref{p1}, we have that in an interior solution in which all
+probabilities are in $(0,1)$, the legislators' probabilities of choosing
+$A$, $\varphi =(\varphi _{1},\dots,\varphi _{n})$, are characterized by the
+non linear system:
+%
+\begin{equation}
+\left( 
+\begin{array}{c}
+\varphi _{1} \\ 
+\dots \\ 
+\varphi _{n}%
+\end{array}%
+\right) =\left( 
+\begin{array}{c}
+1/2+\Psi \left( \omega (s_{A}^{1})-\omega (s_{B}^{1})+\phi
+\sum\nolimits_{j}g_{1,j}\left( 2\varphi _{j}-1\right) \right) \\ 
+\dots \\ 
+1/2+\Psi \left( \omega (s_{A}^{n})-\omega (s_{B}^{n})+\phi
+\sum\nolimits_{j}g_{n,j}\left( 2\varphi _{j}-1\right) \right)%
+\end{array}%
+\right)  \label{sys1}
+\end{equation}%
+%
+that gives a unique vector of equilibrium probabilities $\varphi
+(s)=\{\varphi _{1}(s),\dots,\varphi _{n}(s)\}$.
+
+The game proceeds as follows.  In stage 1, the lobbyists simultaneously
+commit to a vector of payments ${\bf s}_{A}$ and ${\bf s}_{B}$, without
+observing $\varepsilon^{i}_{p}$.  A strategy for interest group $l$
+is a probability distribution over the set of feasible transfers $S$, that
+is: \[S=\{s:\sum\nolimits_{i}s^{i}\leq W,\text{ }s^{i}\geq 0\text{ {\it for}
+} i=1,\dots,n\}.\]
+
+In stage 2, the Congress members see the vector of payments and the shocks
+$\varepsilon^{i}_{p}$s and optimally decide how to vote.  The lobbyists
+therefore expect the Congress members to vote with probabilities $\varphi
+(s)=\{\varphi _{1}(s),\dots,\varphi _{n}(s)\}$ given by Equation~\ref{sys1}.
+
+A pair of strategies constitute a Nash equilibrium if they are mutually
+optimal: the strategy of interest group $A$ maximizes the expected
+number of legislators who adopt $A$ given $\varphi$ and interest
+group $B$'s strategy; and the strategy of interest group $B$
+minimizes the expected number of legislators who adopt $A$ given
+$\varphi$ and interest group $A$'s strategy.
+
+Interest group $A$ solves:
+%
+\begin{equation}
+\max_{{\bf s}_{A}\in S}\left\{ \sum_{i}\left[ \varphi _{i}({\bf s}_{A},{\bf s%
+}_{B})\right] \right\}  \label{eq2}
+\end{equation}%
+%
+taking ${\bf s}_{B}$ as given. Interest group $B$'s problem is the
+mirror image of $A$'s problem, as it attempts to minimize the objective
+function of Equation~\ref{eq2} taking ${\bf s}_{A}$ as given. The equilibrium
+solution must satisfy the first order condition:
+%
+\begin{equation}
+\sum\nolimits_{j}\partial \varphi _{j}({\bf s}_{A},{\bf s}_{B})/\partial
+s_{l}^{i}=\lambda _{l}\text{ and }\sum\nolimits_{j=1}^{n}s_{l}^{j}=W\text{
+for }i=1,\dots,n,\text{ }l=A,B  \label{eq3}
+\end{equation}
+%
+where $\lambda_{l}$ is the Lagrangian multiplier associated with the budget
+constraints $\sum\nolimits_{i}s_{l}^{i}\leq W\,$in interest group $l$'s
+problem.  BP show that the problem of Equation~\ref{eq2} is well behaved and fully
+characterized by Equation~\ref{eq3}; in equilibrium, moreover, $A$ and $B$ have the
+same Lagrangian multipliers $\lambda_{A}=\lambda _{B}=\lambda _{\ast}$, so
+the first order condition is:
+%
+\[
+D{\bf \varphi }^{\top}\cdot 1=\lambda _{\ast } 
+\]%
+%
+where $D{\bf \varphi }^{\top}{\bf =}(\partial \varphi _{1}^{\ast }/\partial
+s_{A}^{i},\dots,\partial \varphi _{n}^{\ast }/\partial s_{A}^{i})$.
+
+To understand the relationship between lobbying and centralities we need to
+``unpack'' the voting probabilities.
+Differentiating Equation~\ref{sys1} and rearranging, we obtain:
+%
+\begin{equation}
+D{\bf \varphi}=\Psi \left[ I-2\Psi \phi \cdot \boldsymbol{G}\right] ^{-1}D{\bf \omega}
+\label{fi_3}
+\end{equation}%
+%
+where $D{\bf \varphi}$ and $D{\bf \omega}$ are the Jacobians of,
+respectively, ${\bf \varphi }$ and ${\bf \omega}$. Using Equation~\ref{fi_3}, we
+can rewrite the first order condition for the optimality of the lobbyists as:%
+%
+\begin{eqnarray}
+D{\bf \varphi }^{\top}\cdot 1 &=&\Psi \cdot D{\bf \omega }^{\top}\cdot \left(
+I-\phi ^{\ast }\cdot \boldsymbol{G}^{\top}\right) ^{-1}\cdot {\bf 1}=\lambda _{\ast }
+\label{fi_5} \\
+&\Rightarrow &D{\bf \omega }^{\top}\cdot {\bf b}\left( {\bf \phi }^{\ast
+},\boldsymbol{G}^{\top}\right) =\lambda _{\ast }/\Psi   \nonumber
+\end{eqnarray}
+%
+where $\phi ^{\ast }=2\Psi \phi $ and ${\bf b}\left( {\bf \phi }^{\ast },%
+{\bf G}^{\top}\right) $ is the vector of Bonacich centralities of the matrix $%
+\boldsymbol{G}^{\top}$ with parameter $\phi ^{\ast }$.  Note that $D{\bf
+\omega}$ is a vector of zeros except for its $i$-th element that is equal to
+$\omega ^{\prime}(s_{\ast }^{i})$.  \ We can therefore write our necessary
+and sufficient condition of Equation~\ref{fi_5} as:
+%
+\begin{equation}
+b_{i}\left( \phi ^{\ast },\boldsymbol{G}^{\top}\right) \cdot \omega ^{\prime }(s_{\ast
+}^{i})=\lambda _{\ast }\text{ for }i=1,\dots,n  \label{fi_4}
+\end{equation}%
+%
+where, without loss in generality, we have incorporated the constant $\Psi$
+in the Lagrangian multiplier $\lambda _{\ast}$. The necessary and
+sufficient condition of Equation~\ref{fi_4} shows the determinants of the interest
+group's monetary allocation. The interest group chooses $s_{\ast}^{i}$
+equalizing the marginal cost of resources to its marginal benefit. \ The
+marginal cost is measured by the Lagrangian multiplier $\lambda_{\ast}$ of
+Equation~\ref{eq2}.  The marginal benefit is measured by the increase in expected
+votes for $A$.  Equation~\ref{fi_4} makes clear that, because of network
+effects, the direct benefit of making a transfer to $i$ is magnified by a
+factor that is exactly equal to $b_{i}\left(\phi
+^{\ast},\boldsymbol{G}^{\top}\right) $, the Bonacich centrality of $i$ in
+$\boldsymbol{G}^{\top}$ with a constant $\phi ^{\ast}$.
+
+\subsection{Setup of model B}\label{sec:modelB}
+
+\cite*{Battaglini+Sciabolazza+Patacchini:2020}, BLP henceforth, consider a
+congress comprised of $n$ legislators, where ${\cal N}=\{1,\dots,n\}$ is the
+set of legislators.  Each legislator has a pet legislative project that
+she/he wants to implement.  The goal of each legislator is to maximize
+her/his legislative effectiveness, measured by the probability of
+implementing the project.  They assume that legislator $i$'s legislative
+effectiveness at the $r$-th congress $\mathbf{y}_{\mathbf{r}, i}$ is a
+function of $i$'s characteristics, her/his effort and the legislative
+effectiveness of all the legislators that $i$ has befriended.  Specifically,
+the technology is assumed to be:
+%
+\begin{equation}
+\mathbf{y}_{\mathbf{r}, i}=A_{r, i}+\varphi \sqrt{\sum_{j}g_{i,j}\mathbf{y}_{\mathbf{r}, j}}\cdot l_{i}
+\label{E}
+\end{equation}
+%
+Equation~\ref{E} represents the ``production
+function'' for legislative effectiveness.  The first term,
+$A_{r, i}$, is a fixed effect idiosyncratic to $i$.\footnote{This term may
+include a variety of characteristics that have been highlighted in the
+existing literature as important for effectiveness: the legislator's
+seniority, gender and race (potentially in the presence of
+discrimination) and the legislator's position in the committee system and
+party hierarchy.} The second term, which is new in our model, captures the
+importance of social connections.  The social network is described by a $%
+n\times n$ matrix $\boldsymbol{G}$ with the generic element $g_{i,j}$ that
+measures the strength of the social influence of legislator $j$ on
+legislator $i$.  The adjacency matrix can be as simple as tracking the
+connections among legislator $i$ and $j$, for example, $g_{ij}=1$ if $ i$ is
+connected to $j$ ($j\neq i$) and $g_{ij}=0$ otherwise.  We set $g_{ii}=0$. 
+The level of effort is $l_{i}$; the cost of exerting a level of effort
+$l_{i}$ is $\left( l_{i}\right) ^{2}/2$.
+
+A strategy for a legislator is described by a function $l_{i}:{\cal
+T\rightarrow }\left[ 0,1\right]$, mapping $i$'s type $A_{i}$ to an effort
+level.  It is assumed that when the floor opens for business, each
+legislator $i$ chooses her/his own level of effort $l_{i}$ simultaneously,
+taking as given the social network and her/his own expectations of the other
+legislators' effectiveness.\ Given the optimal reaction functions, the
+levels of effectiveness are endogenously determined by Equation~\ref{E}.\footnote{
+This approach is similar to that in general equilibrium theory in economics
+where consumers choose their optimal consumption taking prices as given:
+here legislators choose their levels of effort taking the other legislators'
+effectiveness as given.  As in general equilibrium theory (where prices are
+endogenous since they need to clear markets), here the levels of
+effectiveness are endogenous since they must satisfy the externality
+Equation~\ref{E} given the optimal effort levels.}
+
+The optimal level of effort $l^{i}$ by a type $i=1,\dots,n$ solves the
+problem:
+%
+\begin{equation*}
+\max\limits_{l_{i}}\left\{ A_{i}+\varphi \left(
+\sqrt{\sum_{j=1}^{n}g_{i,j}\mathbf{y}_{\mathbf{r}, j}}\right) \cdot
+l_{i}-\left( l_{i}\right) ^{2}/2\right\} \text{,} \label{E_0}
+\end{equation*}%
+%
+taking $\mathbf{y}_{\mathbf{r}}=(\mathbf{y}_{\mathbf{r},
+1},\dots,\mathbf{y}_{\mathbf{r}, n})$ as given.  Substituting the solution to
+this maximization problem in condition of Equation~\ref{E}, we obtain that the
+equilibrium levels of legislative efficiency for a type $i=1,\dots ,n$ are
+given by: $\mathbf{y}_{\mathbf{r}, i}=A_{r, i}+\frac{\varphi
+^{2}}{2}\sum_{j=1}^{n}g_{i,j}\mathbf{y}_{\mathbf{r}, j}$.  These equations
+can be expressed in matrix form as:%
+%
+\begin{equation}
+\left[ I-\left( \varphi ^{2}/2\right) \cdot \boldsymbol{G}\right] \cdot \mathbf{y}_{\mathbf{r}}={\bf A_r}
+\label{E_01}
+\end{equation}%
+%
+where $\mathbf{y}_{\mathbf{r}}=(\mathbf{y}_{\mathbf{r},
+1}(\boldsymbol{G},{\bf A_r}),\dots,\mathbf{y}_{\mathbf{r},
+n}(\boldsymbol{G},{\bf A_r}))^{\prime }$ is the vector of legislative
+effectiveness $\mathbf{y}_{\mathbf{r}, i}(\boldsymbol{G},{\bf A_r})$ solving
+Equation~\ref{E_01}, and ${\bf A_r}=(A_{r,1},\dots ,A_{r,n})^{\prime}$ is the vector
+of types' characteristics.  The equilibrium levels of effectiveness are
+therefore uniquely defined as:
+%
+\[
+{\bf (}\mathbf{y}_{\mathbf{r}, 1}(\boldsymbol{G},{\bf
+A_r}),\dots,\mathbf{y}_{\mathbf{r}, n}(\boldsymbol{G},{\bf A_r}){\bf
+)}^{\prime }=\left[ I-\left( \varphi ^{2}/2\right) \cdot
+\boldsymbol{G}\right] ^{-1}{\bf A_r.}
+\]%
+%
+that is the weighted Katz-Bonacich centrality of legislator $i$ in network
+$\boldsymbol{G} $ with discount factor $\varphi ^{2}/2$\ and weights ${\bf
+A_r}=(A_{r,1},\dots,A_{r,n})^{\prime}$.  In the presence of social
+spillovers among connected legislators (i.e.,~$\varphi >0$), however, the
+effectiveness of any legislator depends on the characteristics of all other
+legislators, with each legislator weighted using their distance in the
+network (the weights given by the rows of $\left[I-\left( \varphi
+^{2}/2\right) \cdot \boldsymbol{G}\right] ^{-1}$).  The standard model is
+nested as a special case of the more general model (with{\bf \ }$\varphi
+=0$), and so we are able to test if social connections improve the fit of
+our estimates of ${\bf E}$.
+
+\subsection{Alternative setup}\label{sec:alternative}
+
+Alternative microfoundations are games with linear-quadratic utilities that
+capture linear externalities in agents' actions.  A popular setup is a
+social network model of peer effects with conformity preferences.  Let
+$\mathbf{y}_{\mathbf{r}, i}$ denote the legislator $i$'s legislative
+effectiveness at the $r$-th congress.  Denote by
+$\overline{\mathbf{y}}_{\mathbf{r}, i}$ the average effort of individual
+$i$'s peers, given by:%
+%
+\begin{equation*}
+\overline{\mathbf{y}}_{\mathbf{r}, i}=\frac{1}{\bar g_{i}}\sum_{j=1}^{n}g_{i, j}\mathbf{y}_{\mathbf{r}, j,}
+\label{aver}
+\end{equation*}%
+%
+Each legislator $i$ at the congress $r$ selects an effort
+$\mathbf{y}_{\mathbf{r}, i}$, and obtains a payoff $u_{r,
+i}(\mathbf{y}_{\mathbf{r}})$ that depends on the effort profile
+$\mathbf{y}_{\mathbf{r}}$ in the following way:%
+%
+\begin{equation}
+u_{r, i}(\mathbf{y}_{\mathbf{r}})=\left( a_{r, i}+\eta _{r}+\varepsilon _{r,
+i}\right) \mathbf{y}_{\mathbf{r}, i,}- \frac{1}{2}\mathbf{y}_{\mathbf{r},
+i,}^{2}-\frac{d}{2}\,(\mathbf{y}_{\mathbf{r},
+i,}-\overline{\mathbf{y}}_{\mathbf{r}, i})^{2}
+\label{utility}
+\end{equation}%
+%
+where $d>0$.  The benefit part of this utility function is given by $\left(
+a_{r, i}+\eta _{r}+\varepsilon _{r, i}\right)\mathbf{y}_{\mathbf{r}, i,}$
+while the cost is $\frac{1}{2}\mathbf{y}_{\mathbf{r}, i,}^{2}$; both are
+increasing in own effort $\mathbf{y}_{\mathbf{r}, i,}$.  In this part,
+$a_{r, i}$ denotes the agent's ex-ante \textsl{idiosyncratic heterogeneity,}
+which is assumed to be deterministic, perfectly \textsl{ observable} by all
+individuals in the network and corresponds to the observable characteristics
+of individual $i$ and to the observable average characteristics of
+individual $i$'s peers.  To be more precise, $a_{r,i}$ can be written as:
+%
+\begin{equation*}
+a_{r, i}=\sum_{m=1}^{M}\beta _{m}x_{r, i}^{m}+\frac{1}{\bar g_{i}}%
+\sum_{m=1}^{M}\sum_{j=1}^{n}\theta _{m}g_{ij}\,x_{r, i}^{m}  \label{MUI}
+\end{equation*}%
+%
+where $x_{r, i}^{m}$ is a set of $M$ variables accounting for observable
+differences in individual characteristics of individual $i$, and $\beta
+_{m},\theta _{m}$ are parameters.  In the utility function of Equation~\ref{utility})
+$\eta _{r}$ denotes the unobservable network characteristics and
+$\varepsilon _{r, i}$ is an error term, meaning that there is some
+uncertainty in the benefit part of the utility function.  Both $\eta _{r}$
+and $\varepsilon _{r, i}$ are observed by the individuals but not by the
+researcher.  \ The second part of the utility function
+$\frac{d}{2}\,(\mathbf{y}_{\mathbf{r},
+i,}-\overline{\mathbf{y}}_{\mathbf{r}, i})^2$ reflects the influence of
+peers' behavior on own behavior.  It is such that each individual wants to
+minimize the \emph{social distance} between herself and her reference group,
+where $d$ is the parameter describing the \emph{taste for conformity}. 
+Here, the individual loses utility $\frac{d}{2}\,(\mathbf{y}_{\mathbf{r},
+i,}-\overline{\mathbf{y}}_{\mathbf{r}, i})^2$ from failing to conform to
+others.  This is the standard way economists have been modeling conformity
+(see, among others, \citealp{Akerlof1980}, \citealp{Bernheim1994},
+\citealp{Kandel1992}, \citealp{Akerlof1997}, \citealp{Fershtman1998},
+\citealp{Patacchini2012},
+\citealp{PatacchiniRainone2012}).\footnote{\cite{Ballester+Armengol+Zenou:2006}
+and \cite{Armengol2009} present similar microfoundations for peer effects
+where agents' behavior depends on the aggregate (rather than average)
+behavior of peers.} The social norm $\overline{\mathbf{y}}_{\mathbf{r}, i}$\
+can be interpreted as peers' social status.  Observe that the social norm
+here captures the differences between individuals due to network effects. 
+It means that individuals have different types of friends and thus different
+reference groups $\overline{\mathbf{y}}_{\mathbf{r}, i}$.  As a result, the
+social norm each individual $i$ faces is endogenous and depends on her
+location in the network as well as the structure of the network.
+
+In this game where agents choose their effort level $y_{i,k}\geq 0$
+simultaneously, there exists an unique Nash equilibrium (see, e.g.,~\cite{Patacchini2012} given by:%
+%
+\begin{equation*}
+\mathbf{y}_{\mathbf{r}, i,}^{\ast }=\phi \frac{1}{\bar g_{i}}\sum_{j=1}^{n_{k}}g_{ij}\mathbf{y}_{\mathbf{r}, j,}^{\ast
+}+\left( 1-\phi \right) \left( a_{r, i}+\eta _{r}+\varepsilon _{r, i}\right) 
+\label{FOC}
+\end{equation*}%
+%
+where $\phi =d/(1+d)$. \ The optimal effort level depends on the individual
+ex ante heterogeneity ($a_{r, i})$, on the unobserved network characteristics
+($\eta _{r}$) and it is increasing with the average effort of the reference
+group. 
+
+\section{Network models of peer effects} \label{sec:models}
+
+Following the notation defined in the previous section, for each network $r$
+with adjacency matrix $\boldsymbol{G}=[g_{ij}]$, the $k$-th power of
+$\boldsymbol{G}$ given by $\boldsymbol{G}^{k}=
+\boldsymbol{G}\overset{(k\text{times})}{\boldsymbol{...}}\boldsymbol{G}$
+keeps track of direct and indirect connections in $r$.  More precisely, the
+$(i,j)$-th cell of $\boldsymbol{G}^{k}$ gives the number of paths of length
+$k$ in $r$ between $i$ and $j$.  In particular,
+$\boldsymbol{G}^{0}=\boldsymbol{I}$.
+%
+\begin{definition}[\citealp{Katz:1953,Bonacich:1987}] \label{Def1}
+%
+Given a vector $\boldsymbol{u}\in \mathbb{R}_{+}^{n}$, and $\phi\geq 0$ a
+small enough scalar, the vector of Katz-Bonacich centralities of parameter
+$\phi$ in network $g$ is defined as:
+%
+\begin{equation}
+\boldsymbol{b}\left( g,\phi \right) =\left( \boldsymbol{I}-\phi
+\boldsymbol{G}\right) ^{-1}\boldsymbol{u=}\sum\limits_{p=0}^{\infty}\phi
+^{p} \boldsymbol{G}^{p}\boldsymbol{u}.
+\label{KB}
+\end{equation}
+\end{definition}
+%
+The reduced form of the first order necessary and sufficient condition for
+optimality in the behavioral model A developed by BP (see
+Equation~\ref{fi_4}), can be written as:
+%
+\begin{equation}
+\mathbf{y}_{\mathbf{r}}=\alpha \cdot \left( \boldsymbol{I}-\phi \boldsymbol{G%
+}\right) ^{-1}+X_{r}^\top\mathbf{\beta }+\mathbf{\epsilon }_{r},
+\label{s_r_2}
+\end{equation}
+%
+where $\mathbf{y}_{\mathbf{r}}$ is the vector of outcomes for the $n$ agents
+in network $r$,\footnote{In the context investigated by BLP, $\mathbf{y}$ is
+the amount of money received by legislators from interest groups in support
+for their electoral campaign.  Observe that model A can be applied to the
+study of peer effects in other contexts where the behavior of the agents
+under study is consistent with the theory underlying this model.  The same
+reasoning applies for model B.  The interested readers is referred to the
+recent reviews by
+\cite{An:2011,An:2015a,Jackson+Rogers+Zenou:2017,Hsieh:2020,Zenou:2016} for
+a comprehensive review of the many empirical applications of network models
+of peer effects.} $X_{r}$ is a matrix collecting the characteristics of the
+agents and $\mathbf{\epsilon }_{r}$ is a random error term.  The
+coefficients $\alpha $, $\phi $ and $\mathbf{\beta }$ are the parameters to
+estimate.  Model~\ref{s_r_2} can be written as
+%
+\begin{equation*}
+\mathbf{y}_{r}=\alpha \cdot \boldsymbol{b}_{1}\left( g,\phi \right)
++X_{r}^\top\mathbf{\beta }+\mathbf{\epsilon }_{r},
+\end{equation*}%
+%
+where $\boldsymbol{b}_{1}\left(g,\phi \right) =\boldsymbol{b}\left(g,\phi
+\right) $ from Equation~\ref{KB} when $\boldsymbol{u}=1$.\newline For a
+sample with $\bar{r}$ networks, one can stack up the data by defining
+$y=(\mathbf{y}_{1}^\top,\cdots,\mathbf{y}_{\bar{r}}^\top)^\top$,
+$\mathbf{\epsilon }=(\boldsymbol{\epsilon }_{1}^\top,\cdots
+,\boldsymbol{\epsilon }_{_{\bar{r}}}^\top)^\top$,
+$\mathbf{b}(\phi)=\left(\boldsymbol{b}\left(g,\phi
+\right)^\top,\dots ,\boldsymbol{b}\left(g,\phi\right)^\top\right)^\top$,
+$X=(\boldsymbol{X}_{1}^\top,\dots ,\boldsymbol{X}_{\overline{r}}^\top)$ and
+$G=\mathrm{diag}\{\boldsymbol{G}_{r}\}_{r=1}^{_{\bar{r}}}$.  Observe that
+the generic matrix $\boldsymbol{G}_{r}$ has dimension $n_{r}\times n_{r}$,
+and $G$ has dimension $n\times n$, with $n=\sum_{r=1}^{\bar{r}} n_{r}$.  For
+the entire sample, the model is:
+%
+\begin{equation}
+y=\alpha \cdot \mathbf{b(}\phi \mathbf{)}+X\mathbf{\beta}+\mathbf{\epsilon }
+% \tag{19 \code{lim}}
+\label{NLLS}
+\end{equation}
+%
+We extend Model~\ref{NLLS} by accounting for heterogeneity in network
+spillovers.  Specifically, Model~\ref{NLLS} becomes:
+%
+\begin{equation}
+y=\alpha \lbrack I-G(\phi I+\gamma \Lambda )]^{-1}1+X\mathbf{\beta
+}+\mathbf{\epsilon }
+% \tag{20 \code{het}}
+\label{BP_2}
+\end{equation}
+% \setcounter{equation}{20}\noindent 
+%
+where $\Lambda =I\otimes z$ is a matrix with the values in the vector $z$ on
+the diagonal, and all other values are 0.  Matrix $I$ has dimension $n
+\times n$ and the vector $z$ has dimension has dimension $1\times n$.  The
+vector $z$ represents a given characteristic of the agents.  Consistently,
+the term $\gamma$ allows for the possibility that agents with different
+characteristics may be more or less susceptible to social spillovers.
+
+The reduced form of the first order necessary and sufficient condition for
+optimality in the behavioral model developed by BLP (see
+Equation~\ref{E_01}), is:
+%
+\begin{equation*}
+\mathbf{y}_{r}=\left(I-\phi G\right) ^{-1}(\alpha
++X_{r}^\top\mathbf{\beta )}+\mathbf{\epsilon }_{r}
+\label{BLP0}
+\end{equation*}
+%
+which can be rewritten as:
+%
+\begin{equation}
+\mathbf{y}_{r}=\boldsymbol{b}_{2}\left( g,\phi \right)+\mathbf{\epsilon}_{r}
+% \tag{22 \code{lim}}
+\label{BLP}
+\end{equation}
+%
+where $\boldsymbol{b}_{2}\left( g,\phi \right) =\boldsymbol{b}\left( g,\phi
+\right) $ from Equation~\ref{KB} when $\boldsymbol{u}=(\alpha
++\boldsymbol{X}_{r}^\top\mathbf{\beta)}$.  Equation~\ref{BLP} shows that, in
+this case as well, the optimal behavior is proportional to a centrality
+measure within the Family~\ref{KB}.  When we consider the case where the
+parameter $\phi$ associated with network externalities is not constant
+across agents, Model~\ref{BLP} in matrix formulation becomes:
+%
+\begin{equation}
+y=(I-\theta \Lambda G)^{-1}(\alpha +X\mathbf{\beta })+\mathbf{\epsilon}
+% \tag{23 \code{het\_l}}
+\label{BLP_3a}
+\end{equation}
+%
+\begin{equation}
+y=(I-\eta G\Lambda)^{-1}(\alpha +X\mathbf{\beta })+\mathbf{\epsilon}
+% \tag{24 \code{het\_r}}
+\label{BLP_3b}
+\end{equation}
+%
+In Equations~\ref{BLP_3a} and \ref{BLP_3b}, $\Lambda $\ is an identity
+matrix with dimension $n \times n$.  In Equation~\ref{BLP_3a}, $\theta
+=\theta _{0}+\theta _{1}z$, where $\theta _{0}$\ is a rescaling factor, and
+$\theta _{1}$ quantifies the interaction between the adjacency matrix $G$
+and the vector $z$.  Consequently, $\theta _{1}$ measures the extent to
+which the peers of an agent with a given characteristic are susceptible to
+her/his influence.  Similarly, in Equation~\ref{BLP_3b}, $\eta =\eta
+_{0}+\eta _{1}z$, where $\eta _{0}$ is a rescaling factor, and $\eta _{1}$
+measures the extent to which an agent with a given characteristic $z$ is
+more susceptible to the influence of her/his peers.\footnote{For additional
+details on these models see the online appendix of the paper by
+\cite{Battaglini+Sciabolazza+Patacchini:2020}.}
+
+In addition, BLP also consider the possibility of heterogeneous links
+(rather than nodes).  We consider the case in which agents belong to two
+different groups and interactions are different between and within groups. 
+To allow for group effects, one can reorder the matrix $G$ so that the first
+$n_{1}$ columns refer to agents in the first group, and the other
+$n_{2}=n-n_{1}$ columns refer to agents in the second group.  The matrix $G$
+can now be divided into four submatrices.  The submatrices in the main
+diagonal (of dimensions $n_{1}\cdot n_{1}$ and $n_{2}\cdot n_{2})$ collect
+the interactions within groups, whereas the remaining two submatrices (of
+dimensions $n_{1}\cdot n_{2}$ and $n_{2}\cdot n_{1})$ collect interactions
+between groups.  $G$ can thus be decomposed in two $n\cdot n$ matrices
+$G_{wit}$ and $G_{btw}$, with $G=G_{wit}+G_{btw}$.  $G_{wit}$\ is a matrix
+that has the same top left and bottom right components as $G$ and it is zero
+otherwise, and $G_{btw}$ is a matrix that has the same bottom left and top
+right components as $G$ and it is zero otherwise.  As a result, Model~\ref{BLP} becomes
+%
+\begin{equation}
+y=(I-\phi _{1}G_{wit}-\phi _{2}G_{btw})^{-1}(\alpha +X\mathbf{\beta })+
+\mathbf{\epsilon }
+% \tag{25 \code{par}}
+\label{BLP_4}
+\end{equation}
+% \setcounter{equation}{25}\noindent 
+%
+where $\phi _{1}$ captures within-group spillovers, and $\phi _{2}$
+between-group spillovers.  The taxonomy of models outlined above shows that
+centrality measures should be calculated according to the most appropriate
+behavioral model describing the agents' behaviors and the requested level of
+heterogeneity of agents and network links.  In BP and BLP we bring these
+theories to the data and find support for their predictions in different
+contexts.
+
+\subsection{Estimation} \label{sec:estimation}
+
+Models~\ref{NLLS} and~\ref{BLP} cannot be estimated by a simple OLS
+regression in which $\mathbf{y}$ represents the dependent variables and
+$\mathbf{b}(\phi)$ and $X$ are the independent variables because
+$\mathbf{b}(\phi)$ is a nonlinear function of a parameter to be estimated,
+$\phi $.  We can, however, obtain estimates for $\alpha $, $\phi$ and
+$\mathbf{\beta}$ using NLLS or ML.
+
+The NLLS requests solving the nonlinear least-squares problem for
+Equation~\ref{NLLS} and~\ref{BLP}.  This task is performed by \pkg{econet}
+using the Levenberg-Marquardt algorithm implemented by \cite{Box:1969} in
+the \proglang{R}~package \pkg{minpack.lm} developed by \cite{minpack.lm}. 
+The details of how the NLLS works in practice can be found in
+\cite{More:1978}.
+
+The ML estimation requests ML functions that can be derived as follows, by
+assuming $\mathbf{\varepsilon}\sim N(0,\sigma ^{2}I).$ For
+Equation~\ref{NLLS}, assume $\mathbf{\varepsilon }\sim N(0,\sigma ^{2}I)$,
+the log likelihood function is
+%
+\begin{equation*}
+\ln \left( L\right) =-\frac{n}{2}\ln \left( 2\pi \right) -\frac{1}{2}\ln
+\sigma ^{2}-\frac{1}{2}\left[y-(I-\phi G)^{-1}1-X\mathbf{\beta }%
+\right] ^{\prime }\left[ y-(I-\phi G)^{-1}1-X\mathbf{\beta }\right]
+/\sigma ^{2}
+\end{equation*}
+%
+where $n$\ is the total sample size.  Equation~\ref{BP_2} will have the same
+form as Equation~\ref{NLLS}, except substituting $\phi G$\ with $G(\phi
+I+\gamma \Lambda)$.
+
+In a similar fashion, we consider the following maximum likelihood functions
+for Equation~\ref{BLP}, ~\ref{BLP_3a}, ~\ref{BLP_3b} and ~\ref{BLP_4}.  For
+Equation~\ref{BLP}, the log likelihood function corresponding
+to Equation~\ref{MLE_BLP} is:
+%
+\begin{equation}
+y=\frac{n}{2}\ln \left( 2\pi \right) -\frac{1}{2}\ln \lvert\Omega \rvert-\frac{1}{2}%
+\left[ y-(I-\phi G)^{-1}X\mathbf{\beta }\right] ^{\prime }\Omega ^{-1}\left[
+y-(I-\phi G)^{-1}X\mathbf{\beta }\right]  
+\label{MLE_BLP}
+\end{equation}
+%
+where $\Omega =\sigma ^{2}(I-\phi G)^{-1}(I-\phi G^{\prime })^{-1}$. 
+Equation~\ref{BLP_3a}, ~\ref{BLP_3b} and ~\ref{BLP_4} have the same
+likelihood function as above except substituting $\phi G$\ with $\theta
+\Lambda G$\ or $\eta G\Lambda $\ or $\phi _{1}G_{wit}-\phi _{2}G_{btw}$. 
+When the network is sparse, isolates (i.e.,~individuals with no neighbors)
+will exist.In this case, we can modify the likelihood function to expedite
+the process.  Rewrite
+%
+\begin{equation*}
+G=\left( 
+\begin{array}{cc}
+G_{n_{1}\times n_{2}}^{c} & \mathbf{0}_{n_{1}\times n_{2}} \\ 
+\mathbf{0}_{n_{2}\times n_{1}} & \mathbf{0}_{n_{2}\times n_{1}}%
+\end{array}\right)
+\end{equation*}
+%
+where $n_{1}$ is the size of all connected individuals and $n_{2}$ is the
+sizes of isolates.
+%
+\begin{equation*}
+\left( I-\phi G\right) ^{-1}=\left( 
+\begin{array}{cc}
+\left(I-\phi G_{n_{1}\times n_{2}}^{c}\right) ^{-1} & \mathbf{0}_{n_{1}\times n_{2}}
+\\
+\mathbf{0}_{n_{2}\times n_{1}} & I_{n_{2}\times n_{1}}
+\end{array}\right)
+\end{equation*}
+%
+Define $y=\left( y^{c^{\prime }},y^{u^{\prime }}\right) ^{\prime }$ and
+$X=\left( X^{c^{\prime }},X^{u^{\prime }}\right) ^{\prime }$.  The
+likelihood function (Equation~\ref{MLE_BLP}) can be transformed into:
+%
+\begin{equation}
+\begin{split}
+y = &\frac{n_{1}}{2}\ln \left( 2\pi \right) -\frac{1}{2}\ln \lvert\Omega
+_{1}\rvert-\frac{1}{2}\left[ y^{c}-(I-\phi G^{c})^{-1}X^{c}\mathbf{\beta }
+\right] ^{\prime}\Omega _{1}{}^{-1}\left[y^{c}-(I-\phi G^{c})^{-1}X^{c}
+\mathbf{\beta }\right] + \\
+& \frac{n_{2}}{2}\ln \left( 2\pi \right) - \frac{n_{2}}{2}\sigma
+^{2}-\frac{1}{2}\left[ y^{u}-X^{u}\mathbf{\beta}\right] ^{\prime }\left[
+y^{u}-X^{u}\mathbf{\beta}\right]
+\label{ML_ISO}
+\end{split}
+\end{equation}
+%
+Where $\Omega _{1}=\sigma ^{2}(I-\phi G^{c})^{-1}(I-\phi G^{c})^{-1}$.
+
+Our package allows the adjacency matrix to be used as a direct input.  This
+setting simplifies the data processing procedure compared with other
+\proglang{R}~packages like \pkg{spdep} when dealing with social network data.  Packages
+like \pkg{spdep} are designed for spatial data.  In this environment, the
+network data is required to be imported as neighbor pairs.  However, social
+network data differs from spatial data since isolates may exists (nodes that
+have no connection with all other nodes).  Networks containing isolates are
+not compatible with the data structure for packages like \pkg{spdep}.
+
+Our package not only provides a way to get around this problem but also
+proposes an efficient algorithm when including those isolates.  Instead of
+inverting the entire adjacency matrix, we show in the algebra above that one
+only needs to invert the adjacency matrix for connected nodes.  The
+likelihood function can be written as a sum of the spatial auto-regressive
+(SAR) likelihood function for connected nodes and a standard linear
+likelihood function of isolates (see Equation~\ref{ML_ISO}).
+
+\section{Addressing network endogeneity} \label{sec:endogeneity}
+
+In many real-world contexts, the network topology is the result of the
+choices of the agents as much as their behavior over the observed
+topologies.  As a result, the data structure can be endogenous, and
+inference neglecting this issue would be invalid.  The simplest way to
+tackle the problem is to model network formation using a homophily model
+\cite[see
+e.g.,][]{Fafchamps+Gubert:2007,Mayer+Puller:2008,Lai+Reiter:2017,Apicella+Marlowe+Fowler+Christakis:2012,Attanasio+Barr+Cardenas+Genicot+Meghir:2012}
+where the existence of a link between $i$ and $j$, $g_{i,j}$, is explained
+by the distance between $i$ and $j$ in terms of characteristics, according
+to the model
+%
+\begin{equation}
+g_{i,j}=\delta _{o}+\sum_{l}\delta _{l+1}\lvert x_{i}^{l}-x_{j}^{l}\rvert+u_{i,j}
+\label{NF1}
+\end{equation}
+%
+where $x_{i}^{l}$ for $l=1,\dots, L$ are $i$'s characteristics.  As standard in
+the literature on dyadic link formation, the main assumption underlying
+Model~\ref{NF1} is dyadic independence, i.e.,~the assumption that each
+agent's choices are not influenced by others' decisions, and therefore each
+link in the network occurs with the same probability.\footnote{This
+approach can be extended to dyadic dependence using latent space models or
+exponential random graph models \citep[see][for a discussion]{An:2011}.}
+
+\cite{Fafchamps+Leij+Goyal:2010} and \cite{Graham:2015} suggest a variation
+of this model where this assumption can be tested.  They suggest to include
+in the model the length of the shortest distance between $i$ and $j$
+\citep{Fafchamps+Leij+Goyal:2010}, or the number of shared friends between
+$i$ and $j$ \citep{Graham:2015}.
+
+Let us denote this additional variable$, \kappa _{i,j}$:
+%
+\begin{equation}
+g_{i,j}=\delta _{o}+\delta _{2}\kappa _{i,j}+\sum_{l}\delta
+_{l+w}\lvert x_{i}^{l}-x_{j}^{l}\rvert +u_{i,j}  
+\label{NF2}
+\end{equation}
+%
+A statistically significant estimate of the parameter $\delta _{2}$ would
+suggest that the presence of a link depends on the presence of links at path
+lengths higher than 2 (or on the number of shared friends), thus indicating
+a violation of the hypothesis of dyadic independence.
+
+A different variation of Model~\ref{NF1} is proposed by
+\cite{Graham:2016}.  The model in \cite{Graham:2016} accounts for agents'
+unobserved heterogeneity by adding fixed effects for agents $i$ and $j$:
+%
+\begin{equation}
+g_{i,j}=\delta _{o}+\delta _{1}\omega _{i,j}+\sum_{l}\delta
+_{l+1}\lvert x_{i}^{l}-x_{j}^{l} \rvert+\iota _{i}+\iota _{j}+u_{i,j},  \label{NF3}
+\end{equation}
+%
+These models of network formation can help mitigate concerns about network
+endogeneity in linear models of peer effects, such as Models~\ref{NLLS}
+and~\ref{BLP}, in one of two ways: i) they can be used to predict network
+connections on the basis of exogenous agents' characteristics and then use
+the predicted network topology as an instrument for the actual network
+structure, or ii) they can be used as a first step selection equation to
+derive a correction for network endogeneity \`{a} la Heckman.\footnote{See
+\cite{Heckman:1979}, who first proposed this technique.  For different
+applications of the Heckman approach in spatial statistics and for network
+models see \cite{Johnnson+Moon:2019,Qu+Lee:2015}.}
+
+BLP follow approach ii.  Under the assumption that $\varepsilon
+_{r}=(\varepsilon _{r,1},\dots ,\varepsilon _{r, n})^{\prime}$ and
+$\{(u_{i,j,r})\}_{i,j}$\ are jointly normal with $\E(\epsilon
+_{i,r}^{2})=\sigma _{\epsilon }^{2}$, $\E(\epsilon_{i,r}u_{i,j,r})=\sigma
+_{\epsilon u }$ for all $i\neq j$, $\E(u_{i,j,r}u _{ik,r})=\sigma _{u }^{2}\
+\forall j=k$, and $\E(u_{i,j,r}u _{i,k,r})=0\ \forall j\neq k$, the expected
+value of the error term conditional on the link formation is $\E(\epsilon
+_{i,r} \mid \{u_{i,j,r}\}_{j \neq i})=\psi \cdot \sum_{j\neq i}u _{i,j,r}$, where
+$\psi =\sigma _{\epsilon u }/\sigma _{u }^{2}$.  It follows that Model~\ref{BLP}
+can be written as:
+%
+\begin{equation}
+\mathbf{y}_{r}=\left[ I-\phi \boldsymbol{G}\right] ^{-1}\cdot \left[ \alpha
+\cdot \mathbf{1}+\boldsymbol{X}_{r}\mathbf{\beta +}\psi \mathbf{\xi }_{r}%
+\mathbf{+\varepsilon }_{r}\right]   \label{final_0}
+\end{equation}%
+%
+where $\xi _{i,r}=\sum_{j\neq i}u_{i,j,r}$ with $\mathbf{\xi
+}_{r}=(\xi_{i,r},\dots,\xi _{n,r})^{^{\prime }}$.  The term $\psi \mathbf{\xi
+}_{r}$ now captures the selection bias.  The model can then be estimated
+with NLLS (see Section~\ref{sec:models}).  Under these assumptions, approach
+i) and approach ii) should produce similar results since both deliver
+consistent estimators.
+
+Under approach i), however, inference is complicated because the selectivity
+term $\xi$ is a generated regressor from a previous estimation and no closed
+form solution is available for the NLLS standard errors estimates in a
+network context.  For this reason, BLP use bootstrapped standard errors. 
+Because of the inherent structural dependency of network data, the design of
+the resampling scheme for this bootstrap procedure needs special
+consideration.  The residual vector in Equation~\ref{final_0} does not
+contain i.i.d.  elements, and one cannot sample with replacement from this
+vector.  Then, BLP use the residual bootstrap procedure, which is common in
+spatial econometrics \citep[see][]{Anselin:1990}, where resampling is
+performed on the structural errors, under the assumption that they are
+i.i.d.  In practice, the vector of structural errors are derived from
+$\mathbf{\varepsilon}=[I-\widehat{\phi}G]\boldsymbol{u}$, where
+$\boldsymbol{u}$ is the residual vector from Equation~\ref{NF3}.
+
+An important challenge in using the two step procedures for both approach i)
+and ii) is finding exclusion restrictions, that is factors that affect
+network formation only.\footnote{Technically, the two step model is
+identified even using exactly the same set of regressors in both stages
+since the dyad-specific repressors used in the first stage (the network
+formation stage) are expressed in absolute values of differences.  These
+differences do not appear in the outcome equation.  Identification is thus
+achieved by exploiting non-linearities specific to the network structure of
+our model.  While this strategy has been used in the applied network
+literature \citep[see e.g.,][]{GPI:2013,CSL:2016}, it may be a tenous source
+of identification in some cases.} This is notoriously a difficult task.  BLP
+use an original instrument: connections between agents which are made during
+adolescence.  Those connections are powerful predictors of social contacts
+later on in life, but clearly predetermined to decisions taken in the
+adulthood.
+
+\section[Implementing econet]{Implementing \pkg{econet}}\label{sec:econet}
+
+We now turn the discussion to the implementation of the functions contained
+in \pkg{econet}.  \pkg{econet} implements the set of linear models of social
+interactions introduced in Section~\ref{sec:theory}, where an agent's outcome is a function
+of the outcomes of the connected agents in the network.  The routines
+provide both NLLS and ML estimators.  The possible sources of endogeneity
+that could hinder the identification of a causal effect in the model can be
+addressed by implementing the two-step correction procedures described in
+Section~\ref{sec:models}.  The estimated parameter capturing the impact of the social
+network on an agent's performance is then used to measure the individual
+importance in the network, obtaining a weighted version of Katz-Bonacich
+centrality.  Finally, the explanatory power of the parameter-dependent
+centrality can be compared with those of standard measures of network
+centrality.  It is worth emphasizing that \pkg{econet} allows the inclusion
+of unconnected agents, for whom the Katz-Bonacich centrality is constant.
+
+Specifically, \pkg{econet} provides four functions.  The first one is
+\code{net\_dep}, which allows one to estimate a model of social interactions
+and compute the relative weighted Katz-Bonacich centralities of the agents. 
+Different behavioral models can be chosen (i.e.,~those provided by BP and
+BLP).  Moreover, the hypothesis of homogeneous or heterogeneous spillovers can
+be tested.  The second function is \code{boot}, which is built to obtain
+valid inference when the NLLS estimator with Heckman correction is used. 
+The third function is \code{horse\_race}, which allows one to compare the
+explanatory power of parameter-dependent centralities relative to other
+centrality measures.  The fourth function is \code{quantify}, and it is used
+to assess the effect of control variables in the framework designed by BLP.
+
+\subsection{Detailing the functions}
+
+The modeling choices presented so far are implemented by the function
+\code{net\_dep}. The first three arguments of this function are: i) \code{formula}, an object
+of class `\code{formula}' which specifies the independent variable and the
+controls; ii) \code{data}, an object of class `\code{data.frame}' containing
+the values of the variables included in \emph{formula}, iii) \code{G}, an
+object of class `\code{Matrix}' where the generic element $g_{ij}$ is used to
+track the connection between $i$ and $j$ in the social network.  \code{G}
+can be unweighted (i.e.,~$g_{ij}=1$ if $i$ and $j$ are connected, and 0
+otherwise), or weighted (e.g.,~$g_{ij}$ collects the intensity of the
+relations between $i$ and $j$) and column-normalized.  The matrix must be
+arranged in the same order of the data, and row and column names must
+indicate agents' ids.
+
+The next two arguments in \code{net\_dep}, \code{model} and
+\code{hypothesis}, are used to specify the model to be estimated through an
+object of class `\code{character}', as documented in Table~\ref{tab:table1}. 
+Specifically, the argument \code{model} indicates the framework to be
+applied: i.e.,~it is set to \code{Model\_A} or \code{Model\_B} to implement
+respectively the framework by BP and BLP.  The argument \code{hypothesis }
+is necessary to indicate whether peer effects are assumed to be homogeneous
+\code{model = "lim"} or heterogeneous (\code{model = c("het", "het\_l",
+"het\_r")}).
+%
+\begin{table}[t!]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllp{6cm}p{5.5cm}}
+\hline
+Model & Hypothesis & Equation & \multicolumn{2}{l}{Centrality measure
+$\boldsymbol{b}\left(g,\phi \right)$} \\ \hline
+A & \code{lim} & \ref{NLLS} & 
+$\phi$: homogeneous & $\boldsymbol{b}\left(g,\phi \right) =\left(I-\phi
+G\right) ^{-1}1$\\
+& \code{het} & \ref{BP_2} & $\phi$: heterogeneous by node type &
+$\boldsymbol{b}\left( g,\phi \right) =[I-G(\phi I+\gamma \Lambda )]^{-1}1$\\ \hline
+B & \code{lim} & \ref{BLP} & $\phi$: homogeneous &
+$\boldsymbol{b}\left( g,\phi \right) =\left( I-\phi G\right) ^{-1}1$\\
+& \code{het\_l} & \ref{BLP_3a} & $\phi$: heterogeneous outgoing influence by
+node type & $\boldsymbol{b}\left( g,\phi \right) =(I-\theta \Lambda G)^{-1}1$\\
+& \code{het\_r} & \ref{BLP_3b} & $\phi$: heterogeneous ingoing influence by node
+type & $\boldsymbol{b}\left(g,\phi \right) =(I-\eta G\Lambda )^{-1}1$\\
+& \code{par} & \ref{BLP_4} & $\phi$: heterogeneous by link type &
+$\boldsymbol{b}\left(g,\phi \right)=(I-\phi_{1}G_{wit}\phi_{2}G_{btw})^{-1}1$\\
+\hline
+\end{tabular}
+}
+\caption{\label{tab:table1} Field specification in \code{net\_dep}.}
+\end{table}
+%
+
+The argument \code{z} is used to specify the source of heterogeneity for the
+peer effects parameter $\phi$ (i.e.,~the variable $z$ in
+Equations~\ref{BP_2},~\ref{BLP_3a},~\ref{BLP_3b}), or the groups in which the
+network should be partitioned when \code{model = "par"}.  Specifically,
+\code{z} is a numeric vector where the generic element $i$ refers to agent's
+$i$ characteristic (e.g.,~it takes 1 if $i$ is a female, and 0 otherwise).
+
+In order to correct for the potential bias arising from network endogeneity,
+we include in the function four arguments: i) \code{endogeneity}, a logical
+object equal to \code{TRUE} if \code{net\_dep} should implement the two-step
+correction procedure as e.g.,~in Model~\ref{final_0}, and \code{FALSE}
+otherwise; ii) \code{correction}, an object of class `\code{character}' that
+is set to indicate whether \code{net\_dep} should implement a Heckman
+correction (\code{correction = "heckman"}), or an instrumental variable
+approach (\code{correction = "iv"}); iii) \code{exclusion\_restriction}, a
+object of class `\code{Matrix}' used to specify the matrix to instrument the
+endogenous network; iv) \code{first\_step}, an object of class
+`\code{character}' which specifies the network formation model to be used in
+the first step of the procedure for both \code{correction = "heckman"} and
+\code{correction = "iv"}.  This argument can be equal to \code{standard}
+(Equation~\ref{NF1}), \code{shortest} \citep[Equation~\ref{NF2}, as
+in][]{Fafchamps+Leij+Goyal:2010}, \code{coauthor} \citep[Equation~\ref{NF2},
+as in][]{Graham:2015}, \code{fe} (Equation~\ref{NF3}), and \code{degree},
+where the difference in degree centrality between agents is an additional
+regressor of Equation~\ref{NF1}.
+
+Finally, the argument \code{estimation} allows the user to choose the
+estimation technique.  This is an object of class `\code{character}' that can
+be one of two options: \code{NLLS} (nonlinear least squares), which
+implements the Levenberg-Marquardt optimization algorithm for solving the
+nonlinear least-squares problem using the function \code{nlsLM} contained in
+the \proglang{R}~package \pkg{minpack.lm} \citep{minpack.lm} or \code{MLE}
+(maximum likelihood), which uses the function \code{mle2} of the
+\proglang{R}~package \pkg{bbmle} to implement the quasi-Newton method by
+\cite{bbmle} for maximum-likelihood bound constrained optimization.
+
+The complete list of all the inputs of the function \code{net\_dep} is
+available in the help page of the package \pkg{econet}, and it is accessible
+from \proglang{R} by running the code \code{?net\_dep}.
+
+The output of \code{net\_dep} consists of a list of three objects: i) the
+point estimates and relative standard errors of the model's parameters; ii)
+the vector of agents' network centrality; iii) the point estimates and
+relative standard errors of the parameters of the first stage model, if
+\code{endogeneity = TRUE}.
+
+We provide below a list of examples to illustrate the functionality of
+\code{net\_dep}.  Since in all examples we reject the hypothesis of
+normality of the errors, the NLLS estimation method is
+used.\footnote{Observe that in the examples presented in the paper, a set of
+starting values is used to estimate NLLS with the function \code{net\_dep}. 
+When these are not provided by the user, \code{net\_dep} uses some random
+values, and NLLS takes significantly more time to converge in this case. 
+The reader interested in learning more about how starting values should be
+used when running NLLS estimations can refer to \cite{Box:1969}.  Additional
+details on how to specify starting values with \code{net\_dep} can be found
+by running the code \code{?net\_dep} from \proglang{R}.}
+
+\vspace*{-0.2cm}
+
+\subsubsection{Exercise 1: Katz-Bonacich centrality with parameter constant
+across agents}
+
+In the first example, we estimate the association between a Congress
+member's network centrality and the amount of dollars he received from
+interest groups to finance his electoral campaign for the 111th Congress
+using Model~\ref{NLLS}.  The variables used to control for the effect of
+legislators' characteristics are: party affiliation (\code{party}); gender
+(\code{gender}); chairmanship (\code{nchair}); whether or not the Congress
+member has at least one connection in the network (\code{isolate}).
+
+The network used for this exercise represents the connections between agents
+which are made during adolescence.  The network is constructed using
+information on the educational institutions attended by the Congress
+members.  Specifically, we assume that a tie exists between two Congress
+members if they graduated from the same institution within eight years of
+each other.  We set a link between two Congress members, $g_{ij}$, to be
+equal to the number of schools they both attended within eight years of each
+other; then we row normalize the social weights so that $\sum_{i}g_{ij}=1$
+for any $i$.  This analysis is a simplified version (in terms of both data
+and controls included in the model specification) of the analysis in BP.
+
+\vspace*{-0.4cm}
+
+\begin{CodeChunk}
+\begin{CodeInput}
+R> library("econet")
+R> set.seed(2)	
+R> data("a_db_alumni", package = "econet")
+R> data("G_alumni_111", package = "econet")
+R> db_model_A <- a_db_alumni
+R> G_model_A <- a_G_alumni_111
+R> are_factors <- c("party", "gender", "nchair", "isolate")
+R> db_model_A[are_factors] <- lapply(db_model_A[are_factors], factor)
+R> db_model_A$PAC <- db_model_A$PAC/1e+06
+R> f_model_A <- formula("PAC ~ gender + party + nchair + isolate")
+R> starting <- c(alpha = 0.47325, beta_gender1 = -0.26991,
++    beta_party1 = 0.55883, beta_nchair1 = -0.17409,
++    beta_isolate1 = 0.18813, phi = 0.21440)
+R> lim_model_A <- net_dep(formula = f_model_A, data = db_model_A,
++    G = G_model_A, model = "model_A", estimation = "NLLS",
++    hypothesis = "lim", start.val = starting)
+R> summary(lim_model_A)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation: PAC ~ alpha * solve_block(I - phi * G) %*% Ones + 
+beta_gender1 * gender1 + beta_party1 * party1 + 
+beta_nchair1 * nchair1 + beta_isolate1 * isolate1
+              Estimate Std. Error t value Pr(>|t|)    
+alpha          0.47325    0.17969   2.634  0.00876 ** 
+beta_gender1  -0.26991    0.10504  -2.570  0.01052 *  
+beta_party1    0.55883    0.08363   6.682  7.5e-11 ***
+beta_nchair1  -0.17409    0.19004  -0.916  0.36016    
+beta_isolate1  0.18813    0.18196   1.034  0.30178    
+phi            0.21440    0.27005   0.794  0.42768    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1042.55  loglik: -514.28
+\end{CodeOutput}
+\end{CodeChunk}
+%
+In this model, the estimate of the spillover effect ($\phi$), assumed to be
+the same for all Congress members, is positive (even though is not
+statistically significant in this example): The estimated value of $\phi$ is
+used to calculate the weighted Katz-Bonacich centrality of the agents (as
+mentioned, this value can be extracted from the second object stored in the
+output of \code{net\_dep}: e.g.,~\code{lim_model_A\$centrality}).  The
+estimate of the intercept $\alpha$ directly measures the impact of this
+network centrality measure.  Its interpretation is akin to the one of an
+estimated coefficient in a linear regression model.  We find a positive
+effect of a legislator's centrality on campaign contributions, showing that
+more connected Congress members are likely to receive more attention from
+interest groups.  Specifically, when the Katz-Bonacich centrality of agent
+$i$ increases by one unit, the amount of dollars received by
+$i$ from interest groups increases by $0.47\times 1,000,000 = 470,000\$$. 
+The same logic can be applied to interpret the other estimated coefficients.
+
+Let us now repeat the same exercise for Model~\ref{BLP}.  We use a
+simplified version (in terms of both data and controls included in the model
+specification) of the analysis presented in BLP.  Our goal here is to
+investigate the association of legislative networks with Congress members'
+legislative effectiveness score (LES).  Network ties are defined here as the
+number of bills that $j$ cosponsored with $i$.  Also in this case, we impose
+that $\sum_{i}g_{ij}=1$.  The underlying idea is that legislators'
+productivity is affected by the productivity of the other legislators with
+whom they interact.  However, while alumni connections are formed during
+adolescence and can thus be reasonably assumed to be exogenous to a Congress
+member's political activity, cosponsorships are instead endogenous, since
+legislators are clearly strategic in choosing with whom to cosponsor a bill. 
+The function \code{net\_dep} allows the users to control for network
+endogeneity using the Heckman correction procedures described in Section~\ref{sec:estimation}.
+The legislators' characteristics used in this context
+are the same used in the previous example except the variable
+\code{isolate}, since all Congress members have at least one cosponsorship
+link.
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R> data("db_cosponsor", package = "econet")
+R> data("G_alumni_111", package = "econet")
+R> db_model_B <- db_cosponsor
+R> G_model_B <- G_cosponsor_111
+R> G_exclusion_restriction <- G_alumni_111
+R> are_factors <- c("gender", "party", "nchair")
+R> db_model_B[are_factors] <- lapply(db_model_B[are_factors] , factor)
+R> f_model_B <- formula("les ~gender + party + nchair")
+R> starting <- c(alpha = 0.23952, beta_gender1 = -0.22024,
++    beta_party1 = 0.42947, beta_nchair1 = 3.09615,
++    phi = 0.40038, unobservables = 0.07714)
+R> lim_model_B <- net_dep(formula = f_model_B, data = db_model_B,
++    G = G_model_B, model = "model_B", estimation = "NLLS",
++    hypothesis = "lim", endogeneity = TRUE, 
++    correction = "heckman", first_step = "standard", 
++    exclusion_restriction = G_exclusion_restriction, 
++    start.val = starting)
+R> summary(lim_model_B)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation: les ~ solve_block(I - phi * G) %*% (alpha * Ones + 
+beta_gender1 * gender1 + beta_party1 * party1 + 
+beta_nchair1 * nchair1 + beta_unobservables * unobservables)
+                   Estimate Std. Error t value Pr(>|t|)    
+alpha               0.23952    0.07130   3.359 0.000851 ***
+beta_gender1       -0.22024    0.14052  -1.567 0.117787    
+beta_party1         0.42947    0.10111   4.247 2.65e-05 ***
+beta_nchair1        3.09615    0.25951  11.931  < 2e-16 ***
+phi                 0.40038    0.06136   6.525 1.90e-10 ***
+beta_unobservables  0.07714    0.06138   1.257 0.209519    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1342.51  loglik: -664.25
+\end{CodeOutput}
+\begin{CodeInput}
+R> summary(lim_model_B, print = "first.step")
+\end{CodeInput}
+\begin{CodeOutput}
+First step:  y ~ exclusion_restriction + gender1 + party1 + nchair1
+                        Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            1.481e-03  3.809e-05  38.887  < 2e-16 ***
+exclusion_restriction  4.657e-03  4.129e-04  11.279  < 2e-16 ***
+gender1               -6.638e-05  2.135e-05  -3.109  0.00188 ** 
+party1                 2.366e-03  1.940e-05 121.922  < 2e-16 ***
+nchair1               -4.180e-04  3.436e-05 -12.163  < 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+R2: 0.07
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The output of function \code{summary(lim_model_B, print = "first.step")}
+reports the estimates of the first step Model~\ref{NF1}.  The
+interpretation of the results from the first step model follows the standard
+interpretation of the results of a linear probability model.  Being
+connected in the alumni network (\code{G\_exclusion\_restriction}) has a
+positive and significant impact on the probability that two legislators will
+cosponsor a bill, hence the alumni network is an important predictor of the
+cosponsorship network (\code{G\_Model\_B}).
+
+The output of the function \code{summary(lim_model_B)} presents the
+estimation results of Model~\ref{final_0}.  Because of the two-step
+procedure, standard errors of Model~\ref{BLP} are bootstrapped using the
+function \code{boot}.  This function takes the following arguments: i)
+\code{fit}, the first object of \code{net\_dep}'s output; ii) \code{group},
+a numeric vector used to specify if the resampling should be performed
+within specific groups; iii) \code{niter}, an object of class `\code{numeric}' which
+indicates the iterations of the bootstrap; iv) \code{weights}, a logical
+object equal to \code{TRUE} if the object \code{fit} is estimated with the
+argument \code{to\_weight} different from \code{NULL}, and \code{FALSE}
+otherwise (the second is the default option); \code{parallel}, a logical
+object equal to \code{TRUE} if the user wants to use parallel computation,
+and \code{FALSE} otherwise (the second is the default option);
+\code{ncores}, an object of class `\code{numeric}' which indicates the number of
+cores to be used for running parallel computation.\footnote{Please note that
+this function can take considerable time to run.  In addition, the argument
+\code{parallel} has been fully tested only within the Windows operating
+system.  We plan in the future to make this option available across other
+major operating systems.}
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R>  boot_lim_estimate <- boot(object = lim_model_B, hypothesis = "lim",
++    group = NULL, niter = 2, weights = FALSE, parallel = FALSE, 
++    ncores = NULL)
+R>  boot_lim_estimate
+\end{CodeInput}
+\begin{CodeOutput}
+                   coefficient boot.Std.Error boot.t.value boot.p.value
+alpha               0.23951648     0.08747214     2.738203 6.432331e-03
+beta_gender1       -0.22023753     0.14368757    -1.532753 1.260671e-01
+beta_party1         0.42946569     0.11875662     3.616352 3.339708e-04
+beta_nchair1        3.09614813     0.24416950    12.680323 1.487650e-31
+phi                 0.40038484     0.06001437     6.671483 7.756648e-11
+beta_unobservables  0.07714043     0.05965438     1.293123 1.966581e-01
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The results of this second exercise show a positive and significant network
+effects ($\phi$) on the effectiveness of agents, meaning that Congress
+members benefit from their interactions with the colleagues conscripted to
+their own causes.  It is worth noting that network endogeneity does not seem
+to be a major concern in this simple example, since the correlation between
+the unobservables of link formation and outcome equation ($\phi$ in Model~\ref{BLP})
+is not statistically significant.
+
+Observe that while in Model~\ref{NLLS} the estimated effect of network
+centrality is captured by one parameter $\alpha$, in Model~\ref{BLP} it
+requires further elaboration since it varies with individual
+characteristics.  For the $k$-th covariate in Model~\ref{BLP}, if $\phi
+>0$, the centrality's marginal effect is $(I-\varphi G)^{-1}(I\beta _{k})$,
+which is a $n\cdot n$ matrix with its $(i,j)$-th element representing the
+effect of a change in the characteristic $k$ for agent $\,j$ on the outcome
+of agent $i.$ The diagonal elements capture the direct effect of a marginal
+change in the characteristic $k$ for agent $\,i.$ The elements outside the
+diagonal instead capture the indirect effects, that is the effects on the
+outcome of $i$ triggered by variation of the characteristic $k$ in other
+agents.  The direct effects are comparable to the OLS estimated effects
+without considering the network effects.  The important difference in
+comparing the estimates of the covariates in the models with and without
+network effects is precisely that when $\phi>0$, the marginal effect of the
+$k$-th\ covariate in Model~\ref{BLP} is not just $\beta_{k}$ but it also
+depends on the individual's position in the network (i.e.,~on the
+individual's network centrality).
+
+The function \code{quantify} allows the user to run this task. 
+Specifically, it provides the estimated impacts of the agents'
+characteristics with network effects (which is equivalent to the estimated
+impacts of agents' network centrality by characteristic) and compares them
+with the OLS estimates.  Because, as we said before, the marginal effects of
+characteristics are different for different agents, the function
+\code{quantify} reports the mean, standard deviation, maximum and minimum
+for both direct and indirect effects.  It requires the argument \code{fit},
+which is the output of either the function \code{net\_dep} or
+\code{horse\_race} (discussed below).
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R> quantify(fit = lim_estimate_model_B)
+\end{CodeInput}
+\begin{CodeOutput}
+                      beta Direct_mean Direct_std Direct_max Direct_min
+beta_gender1       -0.2202     -0.2205     0.0002    -0.2202    -0.2217
+beta_party1         0.4295      0.4299     0.0003     0.4323     0.4295
+beta_nchair1        3.0961      3.0992     0.0025     3.1162     3.0961
+beta_unobservables  0.0771      0.0772     0.0001     0.0776     0.0771
+                   Indirect_mean Indirect_std Indirect_max Indirect_min
+beta_gender1             -0.0003       0.0005       0.0000      -0.0149
+beta_party1               0.0007       0.0009       0.0290       0.0000
+beta_nchair1              0.0047       0.0068       0.2091       0.0000
+beta_unobservables        0.0001       0.0002       0.0052       0.0000
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The estimation results show the mean, standard deviation, maximum and
+minimum for both direct and indirect effects.  Perhaps unsurprisingly, it
+appears that the indirect effects are smaller than the direct
+effects.\footnote{For additional details on the interpretation of the
+estimated parameters of network models with peer effects see
+\cite{LeSage:2009}, Chapter~2.7.}
+
+As already shown, agents' centrality measures can be accessed using the
+operator \code{\$} with \code{net\_dep}'s output, e.g.,~\code{lim_model_B\$centrality},
+and it can be used for different
+applications.  For example, we can use it to rank agents' positions in the
+Congress social space, or to study the centrality distribution in the
+Republican and the Democratic party, as we do in Figure \ref{fig:figure1}.
+%
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.72\textwidth, trim=0 5 0 5, clip]{Figure1}
+\caption{\label{fig:figure1} BLP model: Distribution of Parameter-Dependent
+Network Centrality.}
+\end{figure}
+%
+
+\subsubsection{Exercise 2: Katz-Bonacich centrality with heterogeneous by
+node parameter}
+
+The code below estimates Model~\ref{BP_2} using gender as the relevant
+dimension of heterogeneity.  Gender is a dummy variable which takes 1 if the
+legislator is a female, and 0 otherwise.
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R> z <- as.numeric(as.character(db_model_A[, "gender"]))
+R> f_het_model_A <- formula("PAC ~ party + nchair + isolate")
+R> starting <- c(alpha = 0.44835, beta_party1 = 0.56004,
++    beta_nchair1 = -0.16349, beta_isolate1 = 0.21011,
++    beta_z = -0.26015, phi = 0.34212, gamma = -0.49960)
+R> het_model_A <- net_dep(formula = f_het_model_A, data = db_model_A,
++    G = G_model_A, model = "model_A", estimation = "NLLS",
++    hypothesis = "het", z = z, start.val = starting)
+R> summary(het_model_A)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation:  PAC ~ alpha * solve_block(I - G %*% (phi * I + 
+gamma * G_heterogeneity)) %*% Ones + beta_party1 * party1 + 
+beta_nchair1 * nchair1 + beta_isolate1 * isolate1 + beta_z * z
+              Estimate Std. Error t value Pr(>|t|)    
+alpha          0.44835    0.17942   2.499   0.0128 *  
+beta_party1    0.56004    0.08342   6.713 6.21e-11 ***
+beta_nchair1  -0.16349    0.18984  -0.861   0.3896    
+beta_isolate1  0.21011    0.17927   1.172   0.2418    
+beta_z        -0.26014    0.10655  -2.441   0.0150 *  
+phi            0.34212    0.25377   1.348   0.1783    
+gamma         -0.49960    0.34662  -1.441   0.1502    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1042.34  loglik: -513.17
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The results show that in this simple example $\gamma$\ is not significant,
+suggesting that female Congress members do not have a different level of
+influence than their male peers.  Note that the weighted Katz-Bonacich
+centrality derived from the spillover effect are stored in the object
+\code{het\_model\_A\$centrality}.
+
+If we use Equation~\ref{BLP_3a} and~\ref{BLP_3b}, we distinguish between
+outgoing and incoming influence, that is if females are more (or less) able
+to influence and to be influenced by their peers respectively.  The code
+below implements this analysis.  For ease of exposition, we do not consider
+the possible endogeneity of the social network.
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R> z <- as.numeric(as.character(db_model_B[, "gender"]))
+R> f_het_model_B <- formula("les ~ party + nchair")
+R> starting <- c(alpha = 0.23952, beta_party1 = 0.42947,
++    beta_nchair1 = 3.09615, beta_z = -0.12749,
++    theta_0 = 0.42588, theta_1 = 0.08007)
+R> het_model_B_l <- net_dep(formula = f_het_model_B, data = db_model_B,
++    G = G_model_B, model = "model_B", estimation = "NLLS",
++    hypothesis = "het_l", z = z, start.val = starting)
+R> starting <- c(alpha = 0.04717, beta_party1 = 0.51713,
++    beta_nchair1 = 3.12683, beta_z = 0.01975,
++    eta_0 = 1.02789, eta_1 = 2.71825)
+R> het_model_B_r <- net_dep(formula = f_het_model_B, data = db_model_B,
++    G = G_model_B, model = "model_B", estimation = "NLLS",
++    hypothesis = "het_r", z = z, start.val = starting)
+R> summary(het_model_B_l)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation:  les ~ solve_block(I - (theta_0 * I - 
+theta_1 * G_heterogeneity) %*% G) %*% (alpha * Ones + 
+beta_party1 * party1 + beta_nchair1 * nchair1 + beta_z * z)
+             Estimate Std. Error t value Pr(>|t|)    
+alpha         0.22740    0.07584   2.998  0.00287 ** 
+beta_party1   0.41382    0.10198   4.058 5.88e-05 ***
+beta_nchair1  3.07797    0.26148  11.771  < 2e-16 ***
+beta_z       -0.12749    0.21199  -0.601  0.54789    
+theta_0       0.42587    0.07418   5.741 1.77e-08 ***
+theta_1       0.08007    0.12320   0.650  0.51611    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1343.68  loglik: -664.84
+\end{CodeOutput}
+\begin{CodeInput}
+R> summary(het_model_B_r)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation: les ~ solve_block(I - G %*% (eta_0 * I - 
+eta_1 * G_heterogeneity)) %*% (alpha * Ones + 
+beta_party1 * party1 + beta_nchair1 * nchair1 + beta_z * z)
+             Estimate Std. Error t value Pr(>|t|)  
+alpha         0.04717    0.06867   0.687  0.49251    
+beta_party1   0.51713    0.09259   5.585 4.13e-08 ***
+beta_nchair1  3.12683    0.25680  12.176  < 2e-16 ***
+beta_z        0.01976    0.15098   0.131  0.89595    
+eta_0         1.02790    0.22400   4.589 5.85e-06 ***
+eta_1         2.71825    0.91547   2.969  0.00315 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1336.63  loglik: -661.31
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The results shows that females do not seem to be able to influence their
+socially connected peers ($\theta$ is not significant), but they are helpful
+to their colleagues ($\eta_{1}>0$).  In terms of network analysis, this
+implies that all else being equal, Congress members located close to female
+colleagues benefit from their position since they can leverage females to be
+more effective in their legislative activity.  In this case, the weighted
+Katz-Bonacich centralities are stored in \code{het_model_B_l\$centrality}
+and \code{het_model_B_r\$centrality}.
+
+\vspace*{-0.15cm}
+
+\subsubsection{Exercise 3: Katz-Bonacich centrality with heterogeneous by link parameter}
+
+In this last exercise, we show how to explore the hypothesis that relations
+within and between parties might have a different impact on the Congress
+members' LES.  The code below estimates Model~\ref{BLP_4} where the
+within and between effects are shaped by party membership.
+
+\vspace*{-0.25cm}
+
+\begin{CodeChunk}
+\begin{CodeInput}
+R> z <- as.numeric(as.character(db_model_B[, "party"]))
+R> starting <- c(alpha = 0.242486, beta_gender1 = -0.229895,
++    beta_party1 = 0.42848, beta_nchair1 = 3.0959,
++    phi_within = 0.396371, phi_between = 0.414135)
+R> party_model_B <- net_dep(formula = f_model_B, data = db_model_B,
++    G = G_model_B, model = "model_B", estimation = "NLLS",
++    hypothesis = "par", z = z, start.val = starting)
+R> summary(party_model_B)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation:  les ~ solve_block(I - phi_within * G_within - 
+phi_between * G_between) %*% (alpha * Ones + beta_gender1 * gender1 +
+beta_party1 * party1 + beta_nchair1 * nchair1)
+             Estimate Std. Error t value Pr(>|t|)    
+alpha         0.24249    0.08988   2.698 0.007251 ** 
+beta_gender1 -0.22990    0.14120  -1.628 0.104221    
+beta_party1   0.42848    0.12623   3.394 0.000751 ***
+beta_nchair1  3.09590    0.26008  11.904  < 2e-16 ***
+phi_within    0.39637    0.07306   5.425 9.66e-08 ***
+phi_between   0.41414    0.24175   1.713 0.087420 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1344.1  loglik: -665.05
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The estimation results show that connections within one's own party and
+between parties are both significant for advancing a piece of legislation. 
+The weighted Katz-Bonacich centrality can be found in the object
+\code{party_model_B\$centrality}.
+
+\subsection{Centrality measure comparison}
+
+Network centrality measures adopt different criteria for ranking the
+importance of an agent in a network.  As a result, it might be the case that
+a network centrality measure robustly predicts how the individual's
+importance in the network determine her/his outcome, while other measures of
+centrality do not do so as well.  Therefore, one can expect that the outcome
+of an agent may be significantly predicted by different centrality measures,
+but only the measures which better explain the agents' outcome will remain
+significant when these are included together in the same regression model,
+while the others will not be distinguished from zero.
+
+The \proglang{R}~package \pkg{econet} allows to evaluate the explanatory
+power of parameter-dependent centralities relative to other centrality
+measures, which depend on network topology only.  More specifically,
+\pkg{econet} considers the following measures, which are computed using the
+\proglang{R}~package \pkg{igraph} \citep{igraph}: indegree centrality,
+outdegree centrality, degree centrality, betweenness centrality, incloseness
+centrality, outcloseness centrality, and closeness centrality.  It also
+reports eigenvector centrality, which is calculated using the \proglang{R}
+package \pkg{sna} \citep{sna}.\footnote{Indegree centrality is the number of
+incoming links of one node; outdegree centrality is the number of outgoing
+links of one node; degree centrality is the sum of in and out degree;
+betweenness centrality is the number of times a node falls on the shortest
+path between two other nodes; incloseness centrality is the inverse of the
+average distance of one node from all the other nodes passing through
+incoming links; outcloseness centrality is the inverse of the average
+distance of one node from all the other nodes passing through outcoming
+links; closeness centrality is the sum of in and out closeness, and
+eigenvector centrality is proportional to the sum of the centrality of
+agent's neighbors \cite[see][for further details]{Jackson:2010}.} We then
+implement an augmented version of Models~\ref{NLLS} and~\ref{BLP} where
+we add one (or more) centrality measures in the matrix of individual
+characteristics $X_{r}^\top.$ By doing so we can run an horse race across
+different centrality measures.\footnote{It is worth noting that centrality
+measures are computed assuming that the underlying network is fixed. 
+However, as pointed out by \cite{An:2015b}, social networks are easily
+malleable.  How robust the centrality measure is to the potential changes in
+the network is worth further studying.}
+
+The arguments of the function \code{horse\_race} are similar to the
+\code{net\_dep} ones.  The different ones are: i) \code{centralities}, an
+object or a vector of class `\code{character}' specifying the names of the
+centrality measure(s) to be used; ii) \code{directed}, a logical object
+which is set to \code{TRUE} if the network is directed, and \code{FALSE}
+otherwise; iii) \code{weighted}, a logical object equal to \code{TRUE} if
+links between agents have weights, and \code{FALSE} otherwise; and iv)
+\code{normalization}, an object of class `\code{character}' which can be used to
+normalize centrality measures before the estimations.  \footnote{The options
+available are: \code{NULL}, no normalization; \code{bygraph}, divide by the
+number of nodes in the network minus 1 (for degree and closeness) or the
+number of possible links in the network (betweenness), \code{bycomponent},
+divide by the number of nodes in agent's component minus 1 (for degree and
+closeness) or the number of possible links in agent's component
+(betweenness); \code{bymaxgraph}, divide by the maximum centrality value in
+the network; \code{bymaxcomponent}, divide by the maximum centrality value
+in agent's component.}
+
+The output of this function is also similar to \code{net\_dep}, i.e.,~a list
+containing the results of the main estimates in the first object, a
+\code{data.frame} listing the centrality measures in the second object, and
+the results of the first step estimation in the third object (if
+\code{endogeneity = TRUE}).  An example of how this model is implemented and
+results are stored is provided in the following example, where we use a
+linear regression model where betweenness centrality is a regressor.
+%
+\begin{CodeChunk}
+\begin{CodeInput}
+R> starting <- c(alpha = 0.214094, beta_gender1 = -0.212706,
++    beta_party1 = 0.478518, beta_nchair1 = 3.09234,
++    beta_betweenness = 7.06287e-05, phi = 0.344787) 
+R> horse_model_B <- horse_race(formula = f_model_B, 
++    centralities = "betweenness", directed = TRUE, weighted = TRUE, 
++    normalization = NULL, data = db_model_B, G = G_model_B,
++    model = "model_B", estimation = "NLLS", start.val = starting)
+R> summary(horse_model_B, centrality = "betweenness")
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation:  les ~ gender + party + nchair + betweenness
+              Estimate Std. Error t value Pr(>|t|)   
+(Intercept)  3.300e-01  9.042e-02   3.650 0.000295 ***
+gender1     -8.904e-02  1.445e-01  -0.616 0.538011    
+party1       7.054e-01  1.139e-01   6.194 1.36e-09 ***
+nchair1      3.202e+00  2.644e-01  12.112  < 2e-16 ***
+betweenness  1.851e-04  3.985e-05   4.645 4.51e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1362.19  loglik: -675.09
+\end{CodeOutput}
+\begin{CodeInput}
+> summary(horse_model_B)
+\end{CodeInput}
+\begin{CodeOutput}
+Call:
+Main Equation: les ~ solve_block(I - phi * G) %*% (alpha * Ones + 
+beta_gender1 * gender1 + beta_party1 * party1 + 
+beta_nchair1 * nchair1 + beta_betweenness * betweenness)
+                   Estimate Std. Error t value Pr(>|t|)    
+alpha             2.141e-01  7.676e-02   2.789  0.00552 ** 
+beta_gender1     -2.127e-01  1.408e-01  -1.511  0.13162    
+beta_party1       4.785e-01  1.105e-01   4.331 1.85e-05 ***
+beta_nchair1      3.092e+00  2.593e-01  11.927  < 2e-16 ***
+beta_betweenness  7.063e-05  4.561e-05   1.549  0.12219    
+phi               3.448e-01  7.101e-02   4.856 1.68e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+AIC: 1341.61  loglik: -663.8
+\end{CodeOutput}
+\end{CodeChunk}
+%
+The results of this estimation show evidence that being able to broker
+connections in the network, as measured by betweenness centrality in the
+object \code{summary(horse_model_B)} is associated with higher legislative
+effectiveness.  The effect disappears when we include network effects, that
+is when we add betweenness centrality as an additional regressor in the
+linear model of social interactions (Equation~\ref{BLP}).  This suggests
+that Katz-Bonacich centrality is a more robust predictor of effectiveness in
+this context.  Estimates are stored in the object
+\code{horse\_estimate\_model\_B}, whereas centrality measures in
+\code{horse_model_B\$centrality}.
+
+\section{Conclusions}\label{sec:conclusion}
+
+We have described the key elements for the estimation of parameter-dependent
+centralities derived from equilibrium models of behavior, and discussed the
+use of the package \pkg{econet} for the implementation of such metrics.  The
+methods described in the paper are derived from several modifications to the
+linear-in-means model -- for which both nonlinear least squares and maximum
+likelihood estimators are provided -- and they allow one to model both link
+and node heterogeneity in network effects, endogenous network formation and
+the presence of unconnected nodes.  Furthermore, they provide the means to
+compare the explanatory power of parameter-dependent network centrality
+measures with those of standard measures of network centrality.  A number of
+examples are used to walk the reader through the discussion and orientate
+the application of these methods to new potential directions of research.
+
+\bibliography{v102i08}
+
+\end{document}
